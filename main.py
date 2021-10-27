@@ -13,7 +13,8 @@ from tkinter import *
 from PIL import Image,ImageTk
 from tkcalendar import Calendar, DateEntry
 import datetime
-
+import time
+from tkinter import messagebox
 
 root = tk.Tk()
 root.title("Timelapse not running")
@@ -28,20 +29,34 @@ def renderVideo():
     # Stop if rendering script is running already for some reason
     if result.stdout:
         print("render.sh script is already running, exiting")
-        exit
+        messagebox.showerror("Error", "render.sh script is already running")
+        return
     else:
         print("render.sh script not running, continuing")
 
 
-    start_date = "15/10/2021"
-    end_date = "17/10/2021"
+    print(type(start_date_cal.get_date()))
+
+    print(str(start_date_cal.get_date().year))
+
+
+    if start_date_cal.get_date() > end_date_cal.get_date():
+        messagebox.showerror("Error", "Start date must be before end date")
+        return
+
+
+    # Convert them to strings because of bad life choices
+    start_date = str(start_date_cal.get_date().day)+"/"+str(start_date_cal.get_date().month)+"/"+str(start_date_cal.get_date().year) # e.g. start_date "15/10/2021"
+    end_date = str(end_date_cal.get_date().day)+"/"+str(end_date_cal.get_date().month)+"/"+str(end_date_cal.get_date().year) # e.g. start_date "17/10/2021"
     framerate = "30"
+
 
 
     # Check if variables are empty
     if not start_date or not end_date or not framerate:
         print("At least one variable is empty")
-        exit
+        messagebox.showerror("Error", "At least one variable is empty")
+        return
 
     # Convert user input to date object and catch potential exceptions
     try:
@@ -49,14 +64,16 @@ def renderVideo():
         end_date_object = datetime.datetime.strptime(end_date+" 23:59:59","%d/%m/%Y %H:%M:%S")
     except Exception as e:
         print("Wrong date format")
-        exit
+        messagebox.showerror("Error", "Wrong date format")
+        return
 
     # Check if framerate is integer
     try:
         int(framerate)
     except Exception as e:
         print("Wrong framerate")
-        exit
+        messagebox.showerror("Error", "Wrong framerate")
+        return
 
 
     # Write to file (for render.sh script)
@@ -94,7 +111,10 @@ def renderVideo():
         print("Rendering using ffmpeg")
         # Start Rendering
         print(subprocess.run(["./render.sh"], shell=False))
-
+    else:
+        print("Not enough pictures for playback")
+        messagebox.showerror("Error", "Not enough pictures for rendering")
+        return
 
     # Remove temp directory
     if os.path.isdir("temp"):
@@ -161,7 +181,29 @@ def startTimelapse():
     print(subprocess.run(["./timelapse.sh"], shell=False))
 
 
+# Not working :/
 def playTimelapse():
+    print("Start Date: ", start_date_cal.get_date())
+    print("End Date: ", end_date_cal.get_date())
+
+    second_image = ImageTk.PhotoImage(Image.open("Output/Pictures/1634395354.jpeg").resize((1000,700), Image.ANTIALIAS))
+    # image_on_canvas = canvas.create_image(20,20, anchor=NW, image=first_image) 
+    
+    print(image_on_canvas)
+
+    canvas.itemconfig(image_on_canvas, image=second_image)
+
+    # pictures = os.listdir(path='Output/Pictures')
+    # for file in pictures:
+    #     unix_epoch = file[0:10]
+    #     temp_date_object = datetime.datetime.fromtimestamp(int(unix_epoch))
+    #     print("Output/Pictures/"+file)
+    #     new_image = ImageTk.PhotoImage(Image.open("Output/Pictures/"+file).resize((1000,700), Image.ANTIALIAS))
+    #     canvas.itemconfig(image_on_canvas, image = new_image)
+    #     time.sleep(2.4)
+
+
+
     return
 
 
@@ -255,6 +297,7 @@ end_date_cal = DateEntry(root, width=12, year=now.year, month=now.month, day=now
 background='darkblue', foreground='white', borderwidth=2)
 end_date_cal.place(x=600, y=850)
 
+
 # Menu Items
 menubar = Menu(root)
 filemenu = Menu(menubar, tearoff=0)
@@ -280,6 +323,22 @@ editmenu.add_command(label="Paste", command=donothing)
 editmenu.add_command(label="Delete", command=donothing)
 editmenu.add_command(label="Select All", command=donothing)
 
+
+
+# Settings Menu
+settingsmenu = Menu(menubar, tearoff=0)
+menubar.add_cascade(label="Settings", menu=settingsmenu)
+
+
+# Timelapse Menu
+timelapsemenu = Menu(menubar, tearoff=0)
+timelapsemenu.add_command(label="Start", command=donothing)
+timelapsemenu.add_command(label="Stop", command=donothing)
+timelapsemenu.add_command(label="Stitching", command=donothing)
+menubar.add_cascade(label="Timelapse", menu=timelapsemenu)
+
+
+
 menubar.add_cascade(label="Edit", menu=editmenu)
 helpmenu = Menu(menubar, tearoff=0)
 helpmenu.add_command(label="Help Index", command=donothing)
@@ -291,13 +350,24 @@ root.config(menu=menubar)
 
 # Showing Images
 #Load an image in the script
-img= (Image.open("Output/Pictures/1634395228.jpeg"))
+# img= (Image.open("Output/Pictures/1634395228.jpeg"))
 
 #Resize the Image using resize method
-resized_image= img.resize((1000,700), Image.ANTIALIAS)
-new_image= ImageTk.PhotoImage(resized_image)
+# resized_image= Image.open("Output/Pictures/1634395228.jpeg").resize((1000,700), Image.ANTIALIAS)
 
-canvas.create_image(20,20, anchor=NW, image=new_image) 
+first_image= ImageTk.PhotoImage(Image.open("Output/Pictures/1634395228.jpeg").resize((1000,700), Image.ANTIALIAS))
+image_on_canvas = canvas.create_image(20,20, anchor=NW, image=first_image) 
+
+print(image_on_canvas)
+
+
+# my_images = []
+# my_images.append(PhotoImage(file = "Output/Pictures/1634395228.jpeg"))
+# my_images.append(PhotoImage(file = "Output/Pictures/1634395242.jpeg"))
+# my_images.append(PhotoImage(file = "Output/Pictures/1634395256.jpeg"))
+# my_image_number = 1
+
+# canvas.itemconfig(image_on_canvas, image = my_images[my_image_number])
   
 # Run GUI
 root.mainloop()

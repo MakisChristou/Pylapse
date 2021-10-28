@@ -15,10 +15,36 @@ from tkcalendar import Calendar, DateEntry
 import datetime
 import time
 from tkinter import messagebox
+from tkinter.ttk import Progressbar
+from time import sleep
+import tempfile
+import threading
 
 root = tk.Tk()
 root.title("Timelapse not running")
 root.resizable(width=False, height=False)
+
+
+picture_count = 0
+
+# Check if video has been rendered succesfully
+# Notify User if error or not
+def checkRender(picture_count):
+    # Read ffmpeg output and deduce whether succeess or not
+    for line in reversed(list(open("output.txt"))):
+        if line.rstrip().startswith("frame="):
+            
+            ffmpeg_frames_rendered=line.rstrip()[6::]
+
+            print(ffmpeg_frames_rendered)
+            print(picture_count)
+
+            if ffmpeg_frames_rendered == str(picture_count):
+                messagebox.showinfo("Success", "Video has been succeesfully rendered")
+            else:
+                messagebox.showerror("Error", "Video has not rendered sucesfully")
+            break
+
 
 # Bonus ability because of Agathangelou requirements
 def renderVideo():
@@ -120,6 +146,9 @@ def renderVideo():
     if os.path.isdir("temp"):
         shutil.rmtree("temp")
 
+
+    # Check if video has been rendered succesfully
+    checkRender(picture_count)
 
 # Main Functionality of app is here
 def startTimelapse():
@@ -241,6 +270,66 @@ def donothing():
     return
 
 
+def progress_bar():
+    #start progress bar
+    popup = tk.Toplevel()
+    tk.Label(popup, text="Files being downloaded").grid(row=0,column=0)
+
+
+    
+
+
+    progress = 0
+    progress_var = tk.DoubleVar()
+    progress_bar = Progressbar(popup, variable=progress_var, maximum=100)
+    progress_bar.grid(row=1, column=0)#.pack(fill=tk.X, expand=1, side=tk.BOTTOM)
+    popup.pack_slaves()
+
+    # return 0
+
+    command = ['pgrep', 'render.sh']
+    result = run(command, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+
+    # While render.sh is running
+    while result.stdout:
+
+        # Read ffmpeg output
+        for line in reversed(list(open("output.txt"))):
+            if "fps= " in line.rstrip():
+                temp_list = line.rstrip().split(" ")
+                frames_index = temp_list.index("fps=") -1
+                # print(frames_index)
+
+                frames_done = int(temp_list[frames_index])
+
+                if picture_count != 0:
+                    progress = frames_done/picture_count*100
+                    print(progress)
+                    progress_var.set(progress)
+                else:
+                    print("0")
+                    progress_var.set(0.0)
+                break
+
+
+        result = run(command, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+
+
+
+
+    return 0
+
+    progress_step = float(100.0/len(range(100)))
+    for team in range(100):
+        popup.update()
+        sleep(1) # lauch task
+        progress += progress_step
+        progress_var.set(progress)
+
+    return 0
+
+
+
 # root = tk.Tk()
 # s = ttk.Style(root)
 # s.theme_use('clam')
@@ -359,6 +448,8 @@ first_image= ImageTk.PhotoImage(Image.open("Output/Pictures/1634395228.jpeg").re
 image_on_canvas = canvas.create_image(20,20, anchor=NW, image=first_image) 
 
 print(image_on_canvas)
+
+# progress_bar()
 
 
 # my_images = []

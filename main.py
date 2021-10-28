@@ -45,7 +45,6 @@ def checkRender(picture_count):
                 messagebox.showerror("Error", "Video has not rendered sucesfully")
             break
 
-
 # Bonus ability because of Agathangelou requirements
 def renderVideo():
     command = ['pgrep', 'render.sh']
@@ -135,8 +134,16 @@ def renderVideo():
     # Render if we have pictures
     if picture_count >= 1:
         print("Rendering using ffmpeg")
-        # Start Rendering
-        print(subprocess.run(["./render.sh"], shell=False))
+
+
+        # Start Rendering in the background
+        my_thread = threading.Thread(target=callFfmpeg)
+        my_thread.setDaemon(True)
+        my_thread.start()
+
+        # Call progress bar 
+        progress_bar(picture_count)
+
     else:
         print("Not enough pictures for playback")
         messagebox.showerror("Error", "Not enough pictures for rendering")
@@ -270,64 +277,55 @@ def donothing():
     return
 
 
-def progress_bar():
-    #start progress bar
-    popup = tk.Toplevel()
-    tk.Label(popup, text="Files being downloaded").grid(row=0,column=0)
+# Video rendering progress bar
+def progress_bar(picture_count):
 
+    def ffmpeg_progress(picture_count):
 
-    
-
-
-    progress = 0
-    progress_var = tk.DoubleVar()
-    progress_bar = Progressbar(popup, variable=progress_var, maximum=100)
-    progress_bar.grid(row=1, column=0)#.pack(fill=tk.X, expand=1, side=tk.BOTTOM)
-    popup.pack_slaves()
-
-    # return 0
-
-    command = ['pgrep', 'render.sh']
-    result = run(command, stdout=PIPE, stderr=PIPE, universal_newlines=True)
-
-    # While render.sh is running
-    while result.stdout:
-
-        # Read ffmpeg output
-        for line in reversed(list(open("output.txt"))):
-            if "fps= " in line.rstrip():
-                temp_list = line.rstrip().split(" ")
-                frames_index = temp_list.index("fps=") -1
-                # print(frames_index)
-
-                frames_done = int(temp_list[frames_index])
-
-                if picture_count != 0:
-                    progress = frames_done/picture_count*100
-                    print(progress)
-                    progress_var.set(progress)
-                else:
-                    print("0")
-                    progress_var.set(0.0)
-                break
-
-
+        command = ['pgrep', 'render.sh']
         result = run(command, stdout=PIPE, stderr=PIPE, universal_newlines=True)
 
+        # While render.sh script is running
+        while result.stdout:
+            
+            print("render.sh is running!")
 
+            # Read ffmpeg output and deduce whether succeess or not
+            for line in reversed(list(open("output.txt"))):
+                if line.rstrip().startswith("frame="):
+                    
+                    ffmpeg_frames_rendered=line.rstrip()[6::]
 
+                    progress = int(ffmpeg_frames_rendered)/picture_count*100
+
+                    print("ProgressBar progress: ", progress)
+
+                    p1["value"] = progress
+                    popup.update()    
+                    break
+
+            time.sleep(0.1)   
+            result = run(command, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+
+    # Wait such that render.sh actually starts
+    time.sleep(5)
+
+    #start progress bar
+    popup = tk.Toplevel()
+    tk.Label(popup, text="Video is being rendered").grid(row=0,column=0)
+
+    p1 = Progressbar(popup, length=200, cursor='spider', mode="determinate", orient=tk.HORIZONTAL)
+    p1.grid(row=2,column=0)
+    # increment()
+    ffmpeg_progress(picture_count)
+    popup.destroy()
 
     return 0
 
-    progress_step = float(100.0/len(range(100)))
-    for team in range(100):
-        popup.update()
-        sleep(1) # lauch task
-        progress += progress_step
-        progress_var.set(progress)
 
-    return 0
-
+# Separate function so we can run it on its own thread
+def callFfmpeg():
+    print(subprocess.run(["./render.sh"], shell=False))
 
 
 # root = tk.Tk()
@@ -449,7 +447,8 @@ image_on_canvas = canvas.create_image(20,20, anchor=NW, image=first_image)
 
 print(image_on_canvas)
 
-# progress_bar()
+progress_bar(290)
+
 
 
 # my_images = []

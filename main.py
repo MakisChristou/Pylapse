@@ -27,8 +27,7 @@ root.resizable(width=False, height=False)
 
 picture_count = 0
 
-# Check if video has been rendered succesfully
-# Notify User if error or not
+# Check if video has been rendered succesfully, notify User if error or not
 def checkRender(picture_count):
     # Read ffmpeg output and deduce whether succeess or not
     for line in reversed(list(open("output.txt"))):
@@ -142,7 +141,7 @@ def renderVideo():
         my_thread.start()
 
         # Call progress bar 
-        progress_bar(picture_count)
+        progressBar(picture_count)
 
     else:
         print("Not enough pictures for playback")
@@ -216,7 +215,6 @@ def startTimelapse():
 
     print(subprocess.run(["./timelapse.sh"], shell=False))
 
-
 # Not working :/
 def playTimelapse():
     print("Start Date: ", start_date_cal.get_date())
@@ -242,7 +240,7 @@ def playTimelapse():
 
     return
 
-
+# Not Working
 def stopTimelapse():
     return
 
@@ -278,41 +276,76 @@ def donothing():
 
 
 # Video rendering progress bar
-def progress_bar(picture_count):
+def progressBar(picture_count):
 
     def ffmpeg_progress(picture_count):
 
         command = ['pgrep', 'render.sh']
         result = run(command, stdout=PIPE, stderr=PIPE, universal_newlines=True)
 
-        # While render.sh script is running
+        ffmpeg_frames_rendered = 0
+
+        # While render.sh script is running check the progress %
         while result.stdout:
             
             print("render.sh is running!")
 
             # Read ffmpeg output and deduce whether succeess or not
+
+            # Update Progress bar and percentage text
             for line in reversed(list(open("output.txt"))):
                 if line.rstrip().startswith("frame="):
                     
-                    ffmpeg_frames_rendered=line.rstrip()[6::]
+                    ffmpeg_frames_rendered = line.rstrip()[6::]
 
                     progress = int(ffmpeg_frames_rendered)/picture_count*100
 
                     print("ProgressBar progress: ", progress)
 
+                    textProgress.set(str(int(progress))+"% Done")
+
                     p1["value"] = progress
                     popup.update()    
+                    break
+
+            # # Update ETA text
+            for line in reversed(list(open("output.txt"))):
+                if line.rstrip().startswith("fps="):
+                    
+                    ffmpeg_fps=line.rstrip()[4::]
+
+                    print(ffmpeg_fps)
+
+                    # ffmpeg_fps -----> 1 second
+                    # picture count ===> x seconds
+
+                    if float(ffmpeg_fps) != 0.0:
+                        eta = (picture_count-int(ffmpeg_frames_rendered))/float(ffmpeg_fps)
+                    else:
+                        eta = 0.0
+                    
+                    print("ProgressBar ETA: ", eta)
+                    # textProgress.set(str(int(progress))+"%")
+                    textETA.set("ETA: "+str(int(eta))+" seconds")   
                     break
 
             time.sleep(0.1)   
             result = run(command, stdout=PIPE, stderr=PIPE, universal_newlines=True)
 
     # Wait such that render.sh actually starts
-    time.sleep(5)
+    time.sleep(1)
+
+    textProgress = tk.StringVar()
+    textProgress.set("0%")
+
+    textETA = tk.StringVar()
+    textETA.set("")
 
     #start progress bar
     popup = tk.Toplevel()
     tk.Label(popup, text="Video is being rendered").grid(row=0,column=0)
+    tk.Label(popup, textvariable=textProgress).grid(row=4,column=0)
+    tk.Label(popup, textvariable=textETA).grid(row=5,column=0)
 
     p1 = Progressbar(popup, length=200, cursor='spider', mode="determinate", orient=tk.HORIZONTAL)
     p1.grid(row=2,column=0)
@@ -328,15 +361,6 @@ def callFfmpeg():
     print(subprocess.run(["./render.sh"], shell=False))
 
 
-# root = tk.Tk()
-# s = ttk.Style(root)
-# s.theme_use('clam')
-
-# ttk.Button(root, text='Calendar', command=example1).pack(padx=10, pady=10)
-# ttk.Button(root, text='DateEntry', command=example2).pack(padx=10, pady=10)
-
-# root.mainloop()
-
 
 # Create canvas
 canvas = tk.Canvas(root, height=900, width=1035)
@@ -345,10 +369,6 @@ canvas = tk.Canvas(root, height=900, width=1035)
 canvas.pack()
 
 
-# Create three buttons
-# openFiles = tk.Button(root,text="Open Files", padx=10, pady=5)
-# openFiles.place(x=200, y=850)
-# openFile.pack()
 
 startTimelapse = tk.Button(root,text="Start Timelapse", padx=10, pady=5, command=startTimelapse)
 # startTimelapse.place(x=175, y=100)
@@ -368,9 +388,9 @@ renderVideo = tk.Button(root,text="Render Video", padx=10, pady=5, command=rende
 renderVideo.place(x=600, y=750)
 # renderVideo.pack()
 
-
-# startDate = tk.Button(root, text="Start Date", padx=10, pady=5, command=example1)
-# startDate.pack()
+# Labels for clarity
+tk.Label(root, text="Start Date").place(x=400, y=820)
+tk.Label(root, text="End Date").place(x=600, y=820)
 
 # Picking Dates
 # Get current date
@@ -447,17 +467,6 @@ image_on_canvas = canvas.create_image(20,20, anchor=NW, image=first_image)
 
 print(image_on_canvas)
 
-progress_bar(290)
 
-
-
-# my_images = []
-# my_images.append(PhotoImage(file = "Output/Pictures/1634395228.jpeg"))
-# my_images.append(PhotoImage(file = "Output/Pictures/1634395242.jpeg"))
-# my_images.append(PhotoImage(file = "Output/Pictures/1634395256.jpeg"))
-# my_image_number = 1
-
-# canvas.itemconfig(image_on_canvas, image = my_images[my_image_number])
-  
 # Run GUI
 root.mainloop()

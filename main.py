@@ -24,7 +24,7 @@ root = tk.Tk()
 root.title("Timelapse not running")
 root.resizable(width=False, height=False)
 
-
+user_choice = ""
 picture_count = 0
 
 # Check if video has been rendered succesfully, notify User if error or not
@@ -43,6 +43,75 @@ def checkRender(picture_count):
             else:
                 messagebox.showerror("Error", "Video has not rendered sucesfully")
             break
+
+# Deletes files in temp dir to shrink duration
+def chooseDuration(picture_count):
+    # Helper function for duration user choice
+    def ok():
+        global user_choice
+        user_choice = variable.get()
+        popup.destroy()
+
+    # Render in the correct duration
+    duration_immutable = picture_count/30 # in seconds
+    duration = duration_immutable
+    smallest_duration = 10 # No video can be smaller than 5 seconds
+
+    durations = []
+    i=2
+
+    if duration < smallest_duration:
+        messagebox.showerror("Error", "Not enough pictures for minimum duration ("+str(smallest_duration)+" seconds)")
+        return
+
+    while duration >= smallest_duration:
+        durations.append(int(duration))
+        duration = duration_immutable / i
+        i+=1
+
+    
+
+    # Popup window for duration options
+    popup = tk.Toplevel()
+    popup.title('Choose Duration')
+    variable = StringVar(popup)
+    variable.set(durations[0]) # default value
+
+    w = OptionMenu(popup, variable, *durations)
+    w.pack()
+
+    button = Button(popup, text="OK", command=ok)
+    button.pack()
+
+    # Pause execution until user chooses duration
+    root.wait_window(popup)
+
+
+    keep_one_every = durations.index(int(user_choice))+1
+
+    print("User choice is ", user_choice)
+    print("Keeping one every ", keep_one_every, " pictures")
+    print("Durations are ", durations)
+    print("Timelapse will be composed of ", picture_count, " pictures")
+
+
+    # Remove files from temporary directory to match user desired duration
+    temp_pictures = os.listdir(path='temp')
+    counter = 1
+    for file in temp_pictures:
+        
+        file_path="temp/"+file
+
+        if not ((counter % keep_one_every) == 0):
+            os.remove(file_path)
+            picture_count-=1
+        
+        counter+=1
+
+
+    print("Timelapse will be composed of ", picture_count, " pictures")
+
+    return picture_count
 
 # Bonus ability because of Agathangelou requirements
 def renderVideo():
@@ -118,6 +187,7 @@ def renderVideo():
 
     os.mkdir("temp")
 
+    # Copy everyting to temp dir
     print("Copying files to temp dir")
 
     for file in pictures:
@@ -128,7 +198,9 @@ def renderVideo():
             shutil.copy("Output/Pictures/"+file, "temp")
 
 
-    print("Timelapse will be composed of ", picture_count, " pictures")
+    # Give duration options, delete temp files to achieve selected duration
+    picture_count = chooseDuration(picture_count)
+
 
     # Render if we have pictures
     if picture_count >= 1:
@@ -258,7 +330,6 @@ def example1():
     cal.pack(fill="both", expand=True)
     ttk.Button(top, text="ok", command=print_sel).pack()
     
-
 # Date choosing
 def example2():
     top = tk.Toplevel(root)
@@ -269,11 +340,9 @@ def example2():
                     foreground='white', borderwidth=2)
     cal.pack(padx=10, pady=10)
 
-
 # Chad retarted function, sigma male grindset
 def donothing():
     return
-
 
 # Video rendering progress bar
 def progressBar(picture_count):
@@ -349,17 +418,14 @@ def progressBar(picture_count):
 
     p1 = Progressbar(popup, length=200, cursor='spider', mode="determinate", orient=tk.HORIZONTAL)
     p1.grid(row=2,column=0)
-    # increment()
     ffmpeg_progress(picture_count)
     popup.destroy()
 
     return 0
 
-
 # Separate function so we can run it on its own thread
 def callFfmpeg():
     print(subprocess.run(["./render.sh"], shell=False))
-
 
 
 # Create canvas

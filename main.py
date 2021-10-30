@@ -217,7 +217,7 @@ def renderVideo():
             print("Renderinf thread alive, won't start a new one")
         else:   
             # Start Rendering in the background
-            renderingThread = threading.Thread(target=callFfmpeg)
+            renderingThread = threading.Thread(target=runRenderingScript)
             renderingThread.setDaemon(True)
             renderingThread.start()
 
@@ -236,6 +236,22 @@ def renderVideo():
 
     # Check if video has been rendered succesfully
     checkRender(picture_count)
+
+# Runs timelapse.sh script as a separate thread so that tkinter can properly update the GUI
+def runTimelapseScript():
+
+    root.title("Timelapse running")
+
+    # Get current thread so we can see if its supposed to stop
+    t = threading.current_thread()
+
+    while True:
+
+        # Check if we should still run
+        if not getattr(t, "do_run", True):
+            break
+        # Take a picture and save it in Output/Pictures
+        print(subprocess.run(["./timelapse.sh"], shell=False))
 
 # Main Functionality of app is here
 def startTimelapse():
@@ -289,12 +305,34 @@ def startTimelapse():
     # Stop if rendering script is running already for some reason
     if result.stdout:
         print("timelapse.sh script is already running, exiting")
-        exit
+        messagebox.showerror("Error", "timelapse.sh script is already running")
+        return
     else:
         print("timelapse.sh script not running, continuing")
 
 
-    print(subprocess.run(["./timelapse.sh"], shell=False))
+    global timelapseThread
+
+    if timelapseThread.is_alive():
+        print("Timelapse thread alive, won't start a new one")
+        messagebox.showerror("Error", "timelapse.sh script is already running")
+        return
+    else:   
+        # Start Rendering in the background
+        timelapseThread = threading.Thread(target=runTimelapseScript)
+        timelapseThread.setDaemon(True)
+        timelapseThread.start()
+
+    return
+
+# Stops the timelapse process
+def stopTimelapse():
+    if timelapseThread.is_alive():
+        print("Timelapse Thread is running")
+        # Signal playback thread to stop
+        timelapseThread.do_run = False
+        root.title("Timelapse not running")
+    return
 
 # This runs as a separate thread so that tkinter can properly update the GUI
 def timelapsePlayback():
@@ -335,7 +373,7 @@ def startPlayback():
 
     return
 
-# Not Working
+#  Stops the playback process
 def stopPlayback():
 
     if playbackThread.is_alive():
@@ -452,7 +490,7 @@ def progressBar(picture_count):
     return 0
 
 # Separate function so we can run it on its own thread
-def callFfmpeg():
+def runRenderingScript():
     print(subprocess.run(["./render.sh"], shell=False))
 
 # Actual main function
@@ -534,8 +572,8 @@ if __name__ == "__main__":
 
     # Timelapse Menu
     timelapsemenu = Menu(menubar, tearoff=0)
-    timelapsemenu.add_command(label="Start", command=donothing)
-    timelapsemenu.add_command(label="Stop", command=donothing)
+    timelapsemenu.add_command(label="Start", command=startTimelapse)
+    timelapsemenu.add_command(label="Stop", command=stopTimelapse)
     timelapsemenu.add_command(label="Stitching", command=donothing)
     menubar.add_cascade(label="Timelapse", menu=timelapsemenu)
 

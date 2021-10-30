@@ -455,127 +455,129 @@ def progressBar(picture_count):
 def callFfmpeg():
     print(subprocess.run(["./render.sh"], shell=False))
 
+# Actual main function
+if __name__ == "__main__":
 
-# Create canvas
-canvas = tk.Canvas(root, height=900, width=1035)
+    # Create canvas
+    canvas = tk.Canvas(root, height=900, width=1035)
 
-# Attach canvas
-canvas.pack()
-
-
-
-startTimelapse = tk.Button(root,text="Start Timelapse", padx=10, pady=5, command=startTimelapse)
-# startTimelapse.place(x=175, y=100)
-# startTimelapse.pack()
-
-
-stopTimelapse = tk.Button(root,text="Stop Timelapse", padx=10, pady=5, command=stopTimelapse)
-stopTimelapse.place(x=200, y=750)
-# stopTimelapse.pack()
-
-playTimelapse = tk.Button(root,text="Play Timelapse", padx=10, pady=5, command=playTimelapse)
-playTimelapse.place(x=400, y=750)
-# playTimelapse.pack()
-
-
-renderVideo = tk.Button(root,text="Render Video", padx=10, pady=5, command=renderVideo)
-renderVideo.place(x=600, y=750)
-# renderVideo.pack()
-
-# Labels for clarity
-tk.Label(root, text="Start Date").place(x=400, y=820)
-tk.Label(root, text="End Date").place(x=600, y=820)
-
-# Picking Dates
-# Get current date
-now = datetime.datetime.now()
-
-start_date_cal = DateEntry(root, width=12, year=now.year, month=now.month, day=now.day, 
-background='darkblue', foreground='white', borderwidth=2)
-start_date_cal.place(x=400, y=850)
-
-end_date_cal = DateEntry(root, width=12, year=now.year, month=now.month, day=now.day, 
-background='darkblue', foreground='white', borderwidth=2)
-end_date_cal.place(x=600, y=850)
-
-
-# Menu Items
-menubar = Menu(root)
-filemenu = Menu(menubar, tearoff=0)
-filemenu.add_command(label="New", command=donothing)
-filemenu.add_command(label="Open", command=donothing)
-filemenu.add_command(label="Save", command=donothing)
-filemenu.add_command(label="Save as...", command=donothing)
-filemenu.add_command(label="Close", command=donothing)
-filemenu.add_separator()
-
-filemenu.add_separator()
-
-filemenu.add_command(label="Exit", command=root.quit)
-menubar.add_cascade(label="File", menu=filemenu)
-editmenu = Menu(menubar, tearoff=0)
-editmenu.add_command(label="Undo", command=donothing)
-
-editmenu.add_separator()
-
-editmenu.add_command(label="Cut", command=donothing)
-editmenu.add_command(label="Copy", command=donothing)
-editmenu.add_command(label="Paste", command=donothing)
-editmenu.add_command(label="Delete", command=donothing)
-editmenu.add_command(label="Select All", command=donothing)
+    # Attach canvas
+    canvas.pack()
 
 
 
-# Settings Menu
-settingsmenu = Menu(menubar, tearoff=0)
-menubar.add_cascade(label="Settings", menu=settingsmenu)
+    startTimelapse = tk.Button(root,text="Start Timelapse", padx=10, pady=5, command=startTimelapse)
+    # startTimelapse.place(x=175, y=100)
+    # startTimelapse.pack()
 
 
-# Timelapse Menu
-timelapsemenu = Menu(menubar, tearoff=0)
-timelapsemenu.add_command(label="Start", command=donothing)
-timelapsemenu.add_command(label="Stop", command=donothing)
-timelapsemenu.add_command(label="Stitching", command=donothing)
-menubar.add_cascade(label="Timelapse", menu=timelapsemenu)
+    stopTimelapse = tk.Button(root,text="Stop Timelapse", padx=10, pady=5, command=stopTimelapse)
+    stopTimelapse.place(x=200, y=750)
+    # stopTimelapse.pack()
+
+    playTimelapse = tk.Button(root,text="Play Timelapse", padx=10, pady=5, command=playTimelapse)
+    playTimelapse.place(x=400, y=750)
+    # playTimelapse.pack()
+
+
+    renderVideo = tk.Button(root,text="Render Video", padx=10, pady=5, command=renderVideo)
+    renderVideo.place(x=600, y=750)
+    # renderVideo.pack()
+
+    # Labels for clarity
+    tk.Label(root, text="Start Date").place(x=400, y=820)
+    tk.Label(root, text="End Date").place(x=600, y=820)
+
+    # Picking Dates
+    # Get current date
+    now = datetime.datetime.now()
+
+    start_date_cal = DateEntry(root, width=12, year=now.year, month=now.month, day=now.day, 
+    background='darkblue', foreground='white', borderwidth=2)
+    start_date_cal.place(x=400, y=850)
+
+    end_date_cal = DateEntry(root, width=12, year=now.year, month=now.month, day=now.day, 
+    background='darkblue', foreground='white', borderwidth=2)
+    end_date_cal.place(x=600, y=850)
+
+
+    # Menu Items
+    menubar = Menu(root)
+    filemenu = Menu(menubar, tearoff=0)
+    filemenu.add_command(label="New", command=donothing)
+    filemenu.add_command(label="Open", command=donothing)
+    filemenu.add_command(label="Save", command=donothing)
+    filemenu.add_command(label="Save as...", command=donothing)
+    filemenu.add_command(label="Close", command=donothing)
+    filemenu.add_separator()
+
+    filemenu.add_separator()
+
+    filemenu.add_command(label="Exit", command=root.quit)
+    menubar.add_cascade(label="File", menu=filemenu)
+    editmenu = Menu(menubar, tearoff=0)
+    editmenu.add_command(label="Undo", command=donothing)
+
+    editmenu.add_separator()
+
+    editmenu.add_command(label="Cut", command=donothing)
+    editmenu.add_command(label="Copy", command=donothing)
+    editmenu.add_command(label="Paste", command=donothing)
+    editmenu.add_command(label="Delete", command=donothing)
+    editmenu.add_command(label="Select All", command=donothing)
 
 
 
-menubar.add_cascade(label="Edit", menu=editmenu)
-helpmenu = Menu(menubar, tearoff=0)
-helpmenu.add_command(label="Help Index", command=donothing)
-helpmenu.add_command(label="About...", command=donothing)
-menubar.add_cascade(label="Help", menu=helpmenu)
-
-root.config(menu=menubar)
+    # Settings Menu
+    settingsmenu = Menu(menubar, tearoff=0)
+    menubar.add_cascade(label="Settings", menu=settingsmenu)
 
 
-# Check if images exist
-if not os.path.isdir("Output/Pictures"):
-    messagebox.showerror("Error", "No pictures to show")
-    os.mkdir("Output/Pictures")
+    # Timelapse Menu
+    timelapsemenu = Menu(menubar, tearoff=0)
+    timelapsemenu.add_command(label="Start", command=donothing)
+    timelapsemenu.add_command(label="Stop", command=donothing)
+    timelapsemenu.add_command(label="Stitching", command=donothing)
+    menubar.add_cascade(label="Timelapse", menu=timelapsemenu)
 
 
-# Make sure temp dir is removed
-if os.path.isdir("temp"):
-    shutil.rmtree("temp")
+
+    menubar.add_cascade(label="Edit", menu=editmenu)
+    helpmenu = Menu(menubar, tearoff=0)
+    helpmenu.add_command(label="Help Index", command=donothing)
+    helpmenu.add_command(label="About...", command=donothing)
+    menubar.add_cascade(label="Help", menu=helpmenu)
+
+    root.config(menu=menubar)
 
 
-pictures = os.listdir(path='Output/Pictures')
-alphabetic_pictures = sorted(pictures)
+    # Check if images exist
+    if not os.path.isdir("Output/Pictures"):
+        messagebox.showerror("Error", "No pictures to show")
+        os.mkdir("Output/Pictures")
 
 
-# Show first image on canvas
-first_image = ImageTk.PhotoImage(Image.open("Output/Pictures/"+alphabetic_pictures[0]).resize((1000,700), Image.ANTIALIAS))
-# image_on_canvas = canvas.create_image(20,20, anchor=NW, image=first_image)
+    # Make sure temp dir is removed
+    if os.path.isdir("temp"):
+        shutil.rmtree("temp")
 
 
-label = tk.Label(root, image=first_image)
-label.place(x=20, y=20)
+    pictures = os.listdir(path='Output/Pictures')
+    alphabetic_pictures = sorted(pictures)
 
 
-# label = tk.Label(root, image=first_image)
-# label.place(x=20, y=20)
+    # Show first image on canvas
+    first_image = ImageTk.PhotoImage(Image.open("Output/Pictures/"+alphabetic_pictures[0]).resize((1000,700), Image.ANTIALIAS))
+    # image_on_canvas = canvas.create_image(20,20, anchor=NW, image=first_image)
 
 
-# Run GUI
-root.mainloop()
+    label = tk.Label(root, image=first_image)
+    label.place(x=20, y=20)
+
+
+    # label = tk.Label(root, image=first_image)
+    # label.place(x=20, y=20)
+
+
+    # Run GUI
+    root.mainloop()

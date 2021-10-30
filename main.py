@@ -26,6 +26,9 @@ root.resizable(width=False, height=False)
 
 user_choice = ""
 picture_count = 0
+playbackThread = threading.Thread()
+renderingThread = threading.Thread()
+
 
 # Check if video has been rendered succesfully, notify User if error or not
 def checkRender(picture_count):
@@ -115,11 +118,12 @@ def chooseDuration(picture_count):
 
 # Bonus ability because of Agathangelou requirements
 def renderVideo():
+
+    # Checks if render.sh script is running
     command = ['pgrep', 'render.sh']
     result = run(command, stdout=PIPE, stderr=PIPE, universal_newlines=True)
 
-    # So we don't expode the server
-    # Stop if rendering script is running already for some reason
+    # Stop if rendering script is running already for some reason (So we don't expode the server)
     if result.stdout:
         print("render.sh script is already running, exiting")
         messagebox.showerror("Error", "render.sh script is already running")
@@ -128,11 +132,10 @@ def renderVideo():
         print("render.sh script not running, continuing")
 
 
-    print(type(start_date_cal.get_date()))
+    # print(type(start_date_cal.get_date()))
+    # print(str(start_date_cal.get_date().year))
 
-    print(str(start_date_cal.get_date().year))
-
-
+    # Check if dates were given correctly
     if start_date_cal.get_date() > end_date_cal.get_date():
         messagebox.showerror("Error", "Start date must be before end date")
         return
@@ -145,13 +148,13 @@ def renderVideo():
 
 
 
-    # Check if variables are empty
+    # Check if variables are empty (Not gonna happen but I had this coded up so ohh well)
     if not start_date or not end_date or not framerate:
         print("At least one variable is empty")
         messagebox.showerror("Error", "At least one variable is empty")
         return
 
-    # Convert user input to date object and catch potential exceptions
+    # Convert user input to date object and catch potential exceptions (Not gonna happen but I had this coded up so ohh well)
     try:
         start_date_object = datetime.datetime.strptime(start_date,"%d/%m/%Y")
         end_date_object = datetime.datetime.strptime(end_date+" 23:59:59","%d/%m/%Y %H:%M:%S")
@@ -160,7 +163,7 @@ def renderVideo():
         messagebox.showerror("Error", "Wrong date format")
         return
 
-    # Check if framerate is integer
+    # Check if framerate is integer (Not gonna happen but I had this coded up so ohh well)
     try:
         int(framerate)
     except Exception as e:
@@ -177,7 +180,7 @@ def renderVideo():
     render_settings_file.close()
 
 
-    pictures = os.listdir(path='Output/Pictures')
+    
 
     picture_count = 0
 
@@ -187,9 +190,11 @@ def renderVideo():
 
     os.mkdir("temp")
 
-    # Copy everyting to temp dir
+    
     print("Copying files to temp dir")
+    pictures = os.listdir(path='Output/Pictures')
 
+    # Copy everyting to temp dir
     for file in pictures:
         unix_epoch = file[0:10]
         temp_date_object = datetime.datetime.fromtimestamp(int(unix_epoch))
@@ -206,11 +211,15 @@ def renderVideo():
     if picture_count >= 1:
         print("Rendering using ffmpeg")
 
+        global renderingThread
 
-        # Start Rendering in the background
-        my_thread = threading.Thread(target=callFfmpeg)
-        my_thread.setDaemon(True)
-        my_thread.start()
+        if renderingThread.is_alive():
+            print("Renderinf thread alive, won't start a new one")
+        else:   
+            # Start Rendering in the background
+            renderingThread = threading.Thread(target=callFfmpeg)
+            renderingThread.setDaemon(True)
+            renderingThread.start()
 
         # Call progress bar 
         progressBar(picture_count)
@@ -287,33 +296,41 @@ def startTimelapse():
 
     print(subprocess.run(["./timelapse.sh"], shell=False))
 
-# Not working :/
+# This runs as a separate thread so that tkinter can properly update the GUI
+def timelapsePlayback():
+    pictures = os.listdir(path='Output/Pictures')
+    alphabetic_pictures = sorted(pictures)
+    global label
+    for file in alphabetic_pictures:
+        print(file)
+        temp_image = ImageTk.PhotoImage(Image.open("Output/Pictures/"+file).resize((1000,700), Image.ANTIALIAS))
+        label.configure(image = temp_image)
+        label.image = temp_image
+        # time.sleep(1)
+
+# Starts timelapse playback thread in the background
 def playTimelapse():
     print("Start Date: ", start_date_cal.get_date())
     print("End Date: ", end_date_cal.get_date())
 
-    second_image = ImageTk.PhotoImage(Image.open("Output/Pictures/1634395354.jpeg").resize((1000,700), Image.ANTIALIAS))
-    # image_on_canvas = canvas.create_image(20,20, anchor=NW, image=first_image) 
-    
-    print(image_on_canvas)
+    global playbackThread
 
-    canvas.itemconfig(image_on_canvas, image=second_image)
-
-    # pictures = os.listdir(path='Output/Pictures')
-    # for file in pictures:
-    #     unix_epoch = file[0:10]
-    #     temp_date_object = datetime.datetime.fromtimestamp(int(unix_epoch))
-    #     print("Output/Pictures/"+file)
-    #     new_image = ImageTk.PhotoImage(Image.open("Output/Pictures/"+file).resize((1000,700), Image.ANTIALIAS))
-    #     canvas.itemconfig(image_on_canvas, image = new_image)
-    #     time.sleep(2.4)
-
-
+    if playbackThread.is_alive():
+        print("Playback Thread is running")
+    else:
+        # Start Rendering in the background
+        playbackThread = threading.Thread(target=timelapsePlayback)
+        playbackThread.setDaemon(True)
+        playbackThread.start()
 
     return
 
 # Not Working
 def stopTimelapse():
+
+    if playbackThread.is_alive():
+        print("Playback Thread is running")
+
     return
 
 # Date Choosing
@@ -521,17 +538,32 @@ menubar.add_cascade(label="Help", menu=helpmenu)
 root.config(menu=menubar)
 
 
-# Showing Images
-#Load an image in the script
-# img= (Image.open("Output/Pictures/1634395228.jpeg"))
+# Check if images exist
+if not os.path.isdir("Output/Pictures"):
+    messagebox.showerror("Error", "No pictures to show")
+    os.mkdir("Output/Pictures")
 
-#Resize the Image using resize method
-# resized_image= Image.open("Output/Pictures/1634395228.jpeg").resize((1000,700), Image.ANTIALIAS)
 
-first_image= ImageTk.PhotoImage(Image.open("Output/Pictures/1634395228.jpeg").resize((1000,700), Image.ANTIALIAS))
-image_on_canvas = canvas.create_image(20,20, anchor=NW, image=first_image) 
+# Make sure temp dir is removed
+if os.path.isdir("temp"):
+    shutil.rmtree("temp")
 
-print(image_on_canvas)
+
+pictures = os.listdir(path='Output/Pictures')
+alphabetic_pictures = sorted(pictures)
+
+
+# Show first image on canvas
+first_image = ImageTk.PhotoImage(Image.open("Output/Pictures/"+alphabetic_pictures[0]).resize((1000,700), Image.ANTIALIAS))
+# image_on_canvas = canvas.create_image(20,20, anchor=NW, image=first_image)
+
+
+label = tk.Label(root, image=first_image)
+label.place(x=20, y=20)
+
+
+# label = tk.Label(root, image=first_image)
+# label.place(x=20, y=20)
 
 
 # Run GUI

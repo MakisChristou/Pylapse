@@ -15,7 +15,7 @@ TIMELAPSE_SETTINGS_FILE="timelapse_settings.txt"
 
 
 # If script already running exit
-if [[ "`pidof -x $(basename $0) -o %PPID`" ]]; then exit; fi
+#if [[ "`pidof -x $(basename $0) -o %PPID`" ]]; then exit; fi
 
 # Example Usage
 # ./timelapse.sh admin admin 192.168.10.149

@@ -246,10 +246,11 @@ def runTimelapseScript():
     # Get current thread so we can see if its supposed to stop
     t = threading.current_thread()
 
+    # timelapse.sh script takes one picture and quits
     while True:
-
         # Check if we should still run
         if not getattr(t, "do_run", True):
+            print("Stopped by stopTimelapse()")
             break
         # Take a picture and save it in Output/Pictures
         print(subprocess.run(["./timelapse.sh"], shell=False))
@@ -325,6 +326,11 @@ def startTimelapse():
         timelapseThread = threading.Thread(target=runTimelapseScript)
         timelapseThread.setDaemon(True)
         timelapseThread.start()
+
+        if timelapseThread.is_alive():
+            messagebox.showinfo("Success", "Timelapse is running")
+        else:
+            messagebox.showerror("Error", "Timelapse has not started")
 
     return
 
@@ -621,3 +627,7 @@ if __name__ == "__main__":
 
     # Run GUI
     root.mainloop()
+
+
+    # if timelapseThread.is_alive():
+    #     timelapseThread.join()

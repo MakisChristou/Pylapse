@@ -301,8 +301,18 @@ def timelapsePlayback():
     pictures = os.listdir(path='Output/Pictures')
     alphabetic_pictures = sorted(pictures)
     global label
+
+    # Get current thread so we can see if its supposed to stop
+    t = threading.current_thread()
+
+
     for file in alphabetic_pictures:
         print(file)
+
+        # Check if we should still run
+        if not getattr(t, "do_run", True):
+            break
+
         temp_image = ImageTk.PhotoImage(Image.open("Output/Pictures/"+file).resize((1000,700), Image.ANTIALIAS))
         label.configure(image = temp_image)
         label.image = temp_image
@@ -330,7 +340,8 @@ def stopTimelapse():
 
     if playbackThread.is_alive():
         print("Playback Thread is running")
-
+        # Signal playback thread to stop
+        playbackThread.do_run = False
     return
 
 # Date Choosing

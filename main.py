@@ -26,6 +26,7 @@ root.resizable(width=False, height=False)
 
 user_choice = ""
 picture_count = 0
+interval=10
 playbackThread = threading.Thread()
 renderingThread = threading.Thread()
 timelapseThread = threading.Thread()
@@ -252,6 +253,8 @@ def runTimelapseScript():
             break
         # Take a picture and save it in Output/Pictures
         print(subprocess.run(["./timelapse.sh"], shell=False))
+
+        time.sleep(interval)
 
 # Main Functionality of app is here
 def startTimelapse():

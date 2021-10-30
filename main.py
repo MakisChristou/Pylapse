@@ -28,7 +28,7 @@ user_choice = ""
 picture_count = 0
 playbackThread = threading.Thread()
 renderingThread = threading.Thread()
-
+timelapseThread = threading.Thread()
 
 # Check if video has been rendered succesfully, notify User if error or not
 def checkRender(picture_count):
@@ -319,7 +319,7 @@ def timelapsePlayback():
         # time.sleep(1)
 
 # Starts timelapse playback thread in the background
-def playTimelapse():
+def startPlayback():
     print("Start Date: ", start_date_cal.get_date())
     print("End Date: ", end_date_cal.get_date())
 
@@ -336,7 +336,7 @@ def playTimelapse():
     return
 
 # Not Working
-def stopTimelapse():
+def stopPlayback():
 
     if playbackThread.is_alive():
         print("Playback Thread is running")
@@ -465,18 +465,17 @@ if __name__ == "__main__":
     canvas.pack()
 
 
-
-    startTimelapse = tk.Button(root,text="Start Timelapse", padx=10, pady=5, command=startTimelapse)
-    # startTimelapse.place(x=175, y=100)
+    # startTimelapse = tk.Button(root,text="Start Timelapse", padx=10, pady=5, command=startTimelapse)
+    # startTimelapse.place(x=200, y=850)
     # startTimelapse.pack()
 
 
-    stopTimelapse = tk.Button(root,text="Stop Timelapse", padx=10, pady=5, command=stopTimelapse)
-    stopTimelapse.place(x=200, y=750)
+    stopPlayback = tk.Button(root,text= "Stop Playback   ", padx=10, pady=5, command=stopPlayback)
+    stopPlayback.place(x=200, y=750)
     # stopTimelapse.pack()
 
-    playTimelapse = tk.Button(root,text="Play Timelapse", padx=10, pady=5, command=playTimelapse)
-    playTimelapse.place(x=400, y=750)
+    startPlayback = tk.Button(root,text= "Start Playback   ", padx=10, pady=5, command=startPlayback)
+    startPlayback.place(x=400, y=750)
     # playTimelapse.pack()
 
 

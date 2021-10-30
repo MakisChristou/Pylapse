@@ -19,6 +19,8 @@ from tkinter.ttk import Progressbar
 from time import sleep
 import tempfile
 import threading
+import signal
+
 
 root = tk.Tk()
 root.title("Timelapse not running")
@@ -30,6 +32,11 @@ interval=10
 playbackThread = threading.Thread()
 renderingThread = threading.Thread()
 timelapseThread = threading.Thread()
+
+
+
+def timelapseSettings():
+    return
 
 # Check if video has been rendered succesfully, notify User if error or not
 def checkRender(picture_count):
@@ -341,6 +348,7 @@ def stopTimelapse():
         # Signal playback thread to stop
         timelapseThread.do_run = False
         root.title("Timelapse not running")
+        messagebox.showinfo("Stopped", "Timelapse has stopped")
     return
 
 # This runs as a separate thread so that tkinter can properly update the GUI
@@ -500,7 +508,7 @@ def progressBar(picture_count):
 
 # Separate function so we can run it on its own thread
 def runRenderingScript():
-    print(subprocess.run(["./render.sh"], shell=False))
+    process = subprocess.run(["./render.sh"], shell=False)
 
 # Actual main function
 if __name__ == "__main__":
@@ -584,6 +592,7 @@ if __name__ == "__main__":
     timelapsemenu.add_command(label="Start", command=startTimelapse)
     timelapsemenu.add_command(label="Stop", command=stopTimelapse)
     timelapsemenu.add_command(label="Stitching", command=donothing)
+    timelapsemenu.add_command(label="Settings", command=donothing)
     menubar.add_cascade(label="Timelapse", menu=timelapsemenu)
 
 
@@ -611,6 +620,7 @@ if __name__ == "__main__":
     pictures = os.listdir(path='Output/Pictures')
     alphabetic_pictures = sorted(pictures)
 
+    print(alphabetic_pictures[1])
 
     # Show first image on canvas
     first_image = ImageTk.PhotoImage(Image.open("Output/Pictures/"+alphabetic_pictures[0]).resize((1000,700), Image.ANTIALIAS))

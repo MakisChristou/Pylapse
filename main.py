@@ -34,7 +34,7 @@ renderingThread = threading.Thread()
 timelapseThread = threading.Thread()
 
 
-
+# Write timelapse settings to its relevant text file
 def timelapseSettings():
     return
 
@@ -126,7 +126,6 @@ def chooseDuration(picture_count):
 
 # Bonus ability because of Agathangelou requirements
 def renderVideo():
-
     # Checks if render.sh script is running
     command = ['pgrep', 'render.sh']
     result = run(command, stdout=PIPE, stderr=PIPE, universal_newlines=True)
@@ -202,8 +201,12 @@ def renderVideo():
     print("Copying files to temp dir")
     pictures = os.listdir(path='Output/Pictures')
 
+    # Why do I have to do this? (bug)
+    pictures.remove(".jpeg")
+
     # Copy everyting to temp dir
     for file in pictures:
+        # print(file)
         unix_epoch = file[0:10]
         temp_date_object = datetime.datetime.fromtimestamp(int(unix_epoch))
         if temp_date_object > start_date_object and temp_date_object < end_date_object:
@@ -353,13 +356,18 @@ def stopTimelapse():
 
 # This runs as a separate thread so that tkinter can properly update the GUI
 def timelapsePlayback():
-    pictures = os.listdir(path='Output/Pictures')
-    alphabetic_pictures = sorted(pictures)
+    
     global label
 
     # Get current thread so we can see if its supposed to stop
     t = threading.current_thread()
 
+    pictures = os.listdir(path='Output/Pictures')
+    alphabetic_pictures = sorted(pictures)
+
+    if not pictures:
+        messagebox.showerror("Error", "No Pictures to show")
+        return
 
     for file in alphabetic_pictures:
         print(file)
@@ -608,9 +616,11 @@ if __name__ == "__main__":
 
     # Check if images exist
     if not os.path.isdir("Output/Pictures"):
-        messagebox.showerror("Error", "No pictures to show")
-        os.mkdir("Output/Pictures")
-
+        messagebox.showerror("Error", "No Output Directory")
+        os.mkdir("Output")
+        os.chdir("Output")
+        os.mkdir("Pictures")
+        os.chdir('..')
 
     # Make sure temp dir is removed
     if os.path.isdir("temp"):
@@ -620,16 +630,22 @@ if __name__ == "__main__":
     pictures = os.listdir(path='Output/Pictures')
     alphabetic_pictures = sorted(pictures)
 
-    print(alphabetic_pictures[1])
 
-    # Show first image on canvas
-    first_image = ImageTk.PhotoImage(Image.open("Output/Pictures/"+alphabetic_pictures[0]).resize((1000,700), Image.ANTIALIAS))
-    # image_on_canvas = canvas.create_image(20,20, anchor=NW, image=first_image)
+    # print(alphabetic_pictures[0])
+    # print(alphabetic_pictures[1])
 
+    if pictures:
+        # Show first image on canvas
+        first_image = ImageTk.PhotoImage(Image.open("Output/Pictures/" + alphabetic_pictures[0]).resize((1000,700), Image.ANTIALIAS))
+        # image_on_canvas = canvas.create_image(20,20, anchor=NW, image=first_image)
+    
+        label = tk.Label(root, image=first_image)
+        label.place(x=20, y=20)
 
-    label = tk.Label(root, image=first_image)
-    label.place(x=20, y=20)
-
+    else:
+        messagebox.showerror("Error", "No Pictures to show")
+        label = tk.Label(root)
+        label.place(x=20, y=20)
 
     # label = tk.Label(root, image=first_image)
     # label.place(x=20, y=20)

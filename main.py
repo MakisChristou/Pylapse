@@ -202,7 +202,7 @@ def renderVideo():
     pictures = os.listdir(path='Output/Pictures')
 
     # Why do I have to do this? (bug)
-    pictures.remove(".jpeg")
+    # pictures.remove(".jpeg")
 
     # Copy everyting to temp dir
     for file in pictures:
@@ -352,6 +352,9 @@ def stopTimelapse():
         timelapseThread.do_run = False
         root.title("Timelapse not running")
         messagebox.showinfo("Stopped", "Timelapse has stopped")
+    else:
+         messagebox.showerror("Error", "No timelapse running")
+
     return
 
 # This runs as a separate thread so that tkinter can properly update the GUI

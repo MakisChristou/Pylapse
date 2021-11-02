@@ -32,10 +32,121 @@ interval=10
 playbackThread = threading.Thread()
 renderingThread = threading.Thread()
 timelapseThread = threading.Thread()
+ips = []
+usernames = []
+passwords = []
 
+
+# Test if all of the cameras are reachable via RTSP (returns 1 if fail and 0 if success)
+def testRTSPCameras(camera_ips, camera_usernames, camera_passwords, interval):
+
+    print(camera_ips)
+    print(camera_usernames)
+    print(camera_passwords)
+    print(interval)
+
+
+
+
+    # Check if variables are empty
+    if not interval or not camera_ips or not camera_usernames or not camera_passwords:
+        print("At least one variable is empty")
+        messagebox.showerror("Error", "Please fill out all of the variables")
+        return
+
+
+    # > 1 cameras
+    if "," in camera_ips or "," in camera_usernames or "," in camera_passwords:
+        print("Multiple cameras")
+    else:
+        print("Single camera")
+
+    # Check if interval is integer
+    try:
+        int(interval)
+    except Exception as e:
+        print("Invalid Interval")
+        messagebox.showerror("Error", "Interval must be an integer")
+        return
+
+    # Check if user given IPs, Usernames and passwords work
+    cap = cv2.VideoCapture('rtsp://'+camera_usernames+':'+camera_passwords+'@'+camera_ips+':554//h264Preview_01_main')
+    ret, img = cap.read()
+    if ret == True:
+        print("RTSP Stream Succesful")
+        messagebox.showinfo("Success", "Camera is reachable via RTSP")
+        # im = Image.fromarray(img)
+        # im.save("camera1.jpeg")
+    else:
+        print("Cannot connect to camera")
+        messagebox.showerror("Error", "Camera is not reachable via RTSP")
+        return
+        
+    cap.release()
+    cv2.destroyAllWindows()
+
+    return 1
 
 # Write timelapse settings to its relevant text file
 def timelapseSettings():
+
+    def saveTimelapseSettings():
+
+        # Get data from text boxes
+        camera_ips = IPInputText.get(1.0, "end-1c")
+        camera_usernames = useranameInputText.get(1.0, "end-1c")
+        camera_passwords = passwordInputText.get(1.0, "end-1c")
+        interval = intervalInputText.get(1.0, "end-1c")
+
+
+        # Check data validity
+        quit = testRTSPCameras(camera_ips, camera_usernames, camera_passwords, interval)
+
+
+        if quit == 1:
+            return
+        else:
+            # Save file
+
+            # Write to file (for timelapse.sh script)
+            timelapse_settings_file = open("timelapse_settings.txt", "w")
+            timelapse_settings_file.write(camera_ips+"\n")
+            timelapse_settings_file.write(camera_usernames+"\n")
+            timelapse_settings_file.write(camera_passwords+"\n")
+            timelapse_settings_file.write(interval+"\n")
+            timelapse_settings_file.close()
+
+        return
+        
+    
+
+    popup = tk.Toplevel()
+    tk.Label(popup, text="Camera IPs").grid(row=0,column=0)
+    # TextBox Creation
+    IPInputText = tk.Text(popup, height = 1, width = 20) 
+    IPInputText.grid(row=2,column=0)
+
+
+    tk.Label(popup, text="Useranmes").grid(row=3,column=0)
+    useranameInputText = tk.Text(popup, height = 1, width = 20) 
+    useranameInputText.grid(row=4,column=0)
+
+
+    tk.Label(popup, text="Passwords").grid(row=5,column=0)
+    passwordInputText = tk.Text(popup, height = 1, width = 20) 
+    passwordInputText.grid(row=6,column=0)
+
+    tk.Label(popup, text="Interval (seconds)").grid(row=7,column=0)
+    intervalInputText = tk.Text(popup, height = 1, width = 20) 
+    intervalInputText.grid(row=8,column=0)
+
+
+    saveButton = tk.Button(popup, text = "Save", command = saveTimelapseSettings)
+    saveButton.grid(row=9, column=0)
+
+
+
+
     return
 
 # Check if video has been rendered succesfully, notify User if error or not
@@ -269,7 +380,14 @@ def runTimelapseScript():
 
 # Main Functionality of app is here
 def startTimelapse():
-    # Get user input from HTML
+
+    # Check if timelapse file exists
+
+
+    # Parse it and save cameras and interval
+
+
+    # Hardcoded for developement
     interval = "60"
     cam_ip = "192.168.10.149"
     cam_username = "admin"
@@ -278,7 +396,7 @@ def startTimelapse():
     # Check if variables are empty
     if not interval or not cam_ip or not cam_username or not cam_pass:
         print("At least one variable is empty")
-        exit
+        return
 
 
     # Check if interval is integer
@@ -286,7 +404,7 @@ def startTimelapse():
         int(interval)
     except Exception as e:
         print("Invalid Interval")
-        exit
+        return
 
     # Check if user given IPs, Usernames and passwords work
     cap = cv2.VideoCapture('rtsp://'+cam_username+':'+cam_pass+'@'+cam_ip+':554//h264Preview_01_main')
@@ -297,7 +415,7 @@ def startTimelapse():
         # im.save("camera1.jpeg")
     else:
         print("Cannot connect to camera")
-        exit
+        return
         
     cap.release()
     cv2.destroyAllWindows()
@@ -372,7 +490,7 @@ def timelapsePlayback():
         messagebox.showerror("Error", "No Pictures to show")
         return
 
-    
+
     for file in alphabetic_pictures:
         print(file)
 
@@ -528,8 +646,6 @@ def progressBar(picture_count):
 def runRenderingScript():
     process = subprocess.run(["./render.sh"], shell=False)
 
-    
-
 # Actual main function
 if __name__ == "__main__":
 
@@ -612,10 +728,8 @@ if __name__ == "__main__":
     timelapsemenu.add_command(label="Start", command=startTimelapse)
     timelapsemenu.add_command(label="Stop", command=stopTimelapse)
     timelapsemenu.add_command(label="Stitching", command=donothing)
-    timelapsemenu.add_command(label="Settings", command=donothing)
+    timelapsemenu.add_command(label="Settings", command=timelapseSettings)
     menubar.add_cascade(label="Timelapse", menu=timelapsemenu)
-
-
 
     menubar.add_cascade(label="Edit", menu=editmenu)
     helpmenu = Menu(menubar, tearoff=0)

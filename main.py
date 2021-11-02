@@ -372,13 +372,19 @@ def timelapsePlayback():
         messagebox.showerror("Error", "No Pictures to show")
         return
 
+    
     for file in alphabetic_pictures:
         print(file)
 
         # Check if we should still run
         if not getattr(t, "do_run", True):
+            # Load first picture when stopping (more intuitive)
+            temp_image = ImageTk.PhotoImage(Image.open("Output/Pictures/"+alphabetic_pictures[0]).resize((1000,700), Image.ANTIALIAS))
+            label.configure(image = temp_image)
+            label.image = temp_image
             break
-
+        
+        # Keep loading the next image if not supposed to stop
         temp_image = ImageTk.PhotoImage(Image.open("Output/Pictures/"+file).resize((1000,700), Image.ANTIALIAS))
         label.configure(image = temp_image)
         label.image = temp_image
@@ -408,6 +414,7 @@ def stopPlayback():
         print("Playback Thread is running")
         # Signal playback thread to stop
         playbackThread.do_run = False
+    
     return
 
 # Date Choosing
@@ -521,6 +528,8 @@ def progressBar(picture_count):
 def runRenderingScript():
     process = subprocess.run(["./render.sh"], shell=False)
 
+    
+
 # Actual main function
 if __name__ == "__main__":
 
@@ -632,10 +641,6 @@ if __name__ == "__main__":
 
     pictures = os.listdir(path='Output/Pictures')
     alphabetic_pictures = sorted(pictures)
-
-
-    # print(alphabetic_pictures[0])
-    # print(alphabetic_pictures[1])
 
     if pictures:
         # Show first image on canvas

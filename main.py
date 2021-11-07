@@ -40,13 +40,11 @@ passwords = []
 # Test if all of the cameras are reachable via RTSP (returns 1 if fail and 0 if success)
 def testRTSPCameras(camera_ips, camera_usernames, camera_passwords, interval):
 
-    print(camera_ips)
-    print(camera_usernames)
-    print(camera_passwords)
-    print(interval)
-
-
-
+    print("TestRTSPCameras")
+    print("("+camera_ips+")")
+    print("("+camera_usernames+")")
+    print("("+camera_passwords+")")
+    print("("+interval+")")
 
     # Check if variables are empty
     if not interval or not camera_ips or not camera_usernames or not camera_passwords:
@@ -80,12 +78,15 @@ def testRTSPCameras(camera_ips, camera_usernames, camera_passwords, interval):
     else:
         print("Cannot connect to camera")
         messagebox.showerror("Error", "Camera is not reachable via RTSP")
-        return
         
     cap.release()
     cv2.destroyAllWindows()
 
-    return 1
+
+    if ret == True:
+        return 0
+    else:
+        return 1
 
 # Write timelapse settings to its relevant text file
 def timelapseSettings():
@@ -110,36 +111,60 @@ def timelapseSettings():
 
             # Write to file (for timelapse.sh script)
             timelapse_settings_file = open("timelapse_settings.txt", "w")
+            timelapse_settings_file.write(interval+"\n")
             timelapse_settings_file.write(camera_ips+"\n")
             timelapse_settings_file.write(camera_usernames+"\n")
             timelapse_settings_file.write(camera_passwords+"\n")
-            timelapse_settings_file.write(interval+"\n")
             timelapse_settings_file.close()
 
+            print("Saved timelapse settings")
+            messagebox.showinfo("Success", "Saved timelapse settings")
+
         return
-        
     
+    # Attempt to read timelapse_settings.txt
+    file_exists = os.path.exists("timelapse_settings.txt")
+
+    camera_ips = ""
+    camera_usernames = ""
+    camera_passwords = ""
+    camera_interval = ""
+
+
+    if file_exists:
+        f = open("timelapse_settings.txt","r")
+        lines = f.readlines()
+        camera_interval = lines[0]
+        camera_ips = lines[1]
+        camera_usernames = lines[2]
+        camera_passwords = lines[3]
+        print(lines[0])
+
 
     popup = tk.Toplevel()
     tk.Label(popup, text="Camera IPs").grid(row=0,column=0)
     # TextBox Creation
     IPInputText = tk.Text(popup, height = 1, width = 20) 
     IPInputText.grid(row=2,column=0)
+    IPInputText.insert(END,camera_ips.rstrip())
 
+    # IPInputText.insert(0, "This is the default text")
 
     tk.Label(popup, text="Useranmes").grid(row=3,column=0)
     useranameInputText = tk.Text(popup, height = 1, width = 20) 
     useranameInputText.grid(row=4,column=0)
+    useranameInputText.insert(END, camera_usernames.rstrip())
 
 
     tk.Label(popup, text="Passwords").grid(row=5,column=0)
     passwordInputText = tk.Text(popup, height = 1, width = 20) 
     passwordInputText.grid(row=6,column=0)
+    passwordInputText.insert(END,camera_passwords.rstrip())
 
     tk.Label(popup, text="Interval (seconds)").grid(row=7,column=0)
     intervalInputText = tk.Text(popup, height = 1, width = 20) 
     intervalInputText.grid(row=8,column=0)
-
+    intervalInputText.insert(END,camera_interval.rstrip())
 
     saveButton = tk.Button(popup, text = "Save", command = saveTimelapseSettings)
     saveButton.grid(row=9, column=0)

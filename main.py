@@ -20,6 +20,7 @@ from time import sleep
 import tempfile
 import threading
 import signal
+import re
 
 
 root = tk.Tk()
@@ -46,6 +47,89 @@ camera_passwords = ""
 camera_interval = ""
 
 
+# loads lits data structures from string data structures
+def loadTimelapseSettings():
+
+    global camera_ips
+    global camera_usernames
+    global camera_passwords
+    global camera_interval
+
+    # Remove whitespace from strings
+    camera_ips = re.sub(r"\s+", "", camera_ips, flags=re.UNICODE)
+    camera_usernames = re.sub(r"\s+", "", camera_usernames, flags=re.UNICODE)
+    camera_passwords = re.sub(r"\s+", "", camera_passwords, flags=re.UNICODE)
+    camera_interval = re.sub(r"\s+", "", camera_interval, flags=re.UNICODE)
+
+    print("loadTimelapseSettings()")
+    print(camera_ips)
+    print(camera_usernames)
+    print(camera_passwords)
+    print(camera_interval)
+
+
+    # Check if interval is integer
+    try:
+        int(camera_interval)
+    except Exception as e:
+        print("Invalid Interval")
+        messagebox.showerror("Error", "Interval must be an integer")
+        return
+
+    # Get number of commas
+    a = camera_ips.count(',')
+    b = camera_usernames.count(',')
+    c = camera_passwords.count(',')
+
+    # Check that ips, usernames and passwords have the same commas
+    if a != b or a != c or c != b:
+        print("Wrong timelapse_settings.txt format")
+        messagebox.showerror("Error", "Wrong timelapse_settings.txt format")
+        return
+
+
+    # Clear so we don't have duplicates
+    ips.clear()
+    usernames.clear()
+    passwords.clear()
+
+    # Construct ips global list
+    temp = ""
+    for char in camera_ips:
+        if char == ",":
+            print("Yes")
+        if char == ',':
+            ips.append(temp)
+            temp = ""
+        if char != ",":
+            temp+=char
+    ips.append(temp)
+
+
+    # Construct usernames global list
+    temp = ""
+    for char in camera_usernames:
+        if char == ',':
+            usernames.append(temp)
+            temp = ""
+        
+        if char != ",":
+            temp+=char
+    usernames.append(temp)
+
+
+    # Construct passwords global list
+    temp = ""
+    for char in camera_passwords:
+        if char == ',':
+            passwords.append(temp)
+            temp = ""
+        
+        if char != ",":
+            temp+=char
+    passwords.append(temp)
+
+    return
 
 # Test if timelapse file exists, if so save results in global variables
 def readTimelapseSettings():
@@ -68,44 +152,15 @@ def readTimelapseSettings():
         camera_passwords = lines[3]
 
 
-        a = camera_ips.count(',')
-        b = camera_usernames.count(',')
-        c = camera_passwords.count(',')
-
-
-        if a != b or a != c or c != b:
-            print("Wrong timelapse_settings.txt format")
+        # Check if variables are empty
+        if len(lines) != 4:
+            print("At least one variable is empty")
             messagebox.showerror("Error", "Wrong timelapse_settings.txt format")
             return
 
-        # Construct ips global list
-        temp = ""
-        for char in camera_ips:
-            if char == "," or char == "\n":
-                ips.append(temp)
-                temp = ""
-            if char != ",":
-                temp+=char
 
-        # Construct usernames global list
-        temp = ""
-        for char in camera_usernames:
-            if char == "," or char == "\n":
-                usernames.append(temp)
-                temp = ""
-            
-            if char != ",":
-                temp+=char
-
-        # Construct passwords global list
-        temp = ""
-        for char in camera_passwords:
-            if char == "," or char == "\n":
-                passwords.append(temp)
-                temp = ""
-            
-            if char != ",":
-                temp+=char
+        # List data structures are filled 
+        loadTimelapseSettings()
 
 
     print(ips)
@@ -114,70 +169,65 @@ def readTimelapseSettings():
     return 
 
 # Test if all of the cameras are reachable via RTSP (returns 1 if fail and 0 if success)
-def testRTSPCameras(camera_ips, camera_usernames, camera_passwords, interval):
+def testRTSPCameras():
 
-    print("TestRTSPCameras")
-    print("("+camera_ips+")")
-    print("("+camera_usernames+")")
-    print("("+camera_passwords+")")
-    print("("+interval+")")
-
-    # Check if variables are empty
-    if not interval or not camera_ips or not camera_usernames or not camera_passwords:
-        print("At least one variable is empty")
-        messagebox.showerror("Error", "Please fill out all of the variables")
-        return
-
-
-    # > 1 cameras
-    if "," in camera_ips or "," in camera_usernames or "," in camera_passwords:
-        print("Multiple cameras")
-    else:
-        print("Single camera")
-
-    # Check if interval is integer
-    try:
-        int(interval)
-    except Exception as e:
-        print("Invalid Interval")
-        messagebox.showerror("Error", "Interval must be an integer")
-        return
-
-    # Check if user given IPs, Usernames and passwords work
-    cap = cv2.VideoCapture('rtsp://'+camera_usernames+':'+camera_passwords+'@'+camera_ips+':554//h264Preview_01_main')
-    ret, img = cap.read()
-    if ret == True:
-        print("RTSP Stream Succesful")
-        messagebox.showinfo("Success", "Camera is reachable via RTSP")
-        # im = Image.fromarray(img)
-        # im.save("camera1.jpeg")
-    else:
-        print("Cannot connect to camera")
-        messagebox.showerror("Error", "Camera is not reachable via RTSP")
-        
-    cap.release()
-    cv2.destroyAllWindows()
+    # For each camera
+    for i in range(len(ips)):
+        # Check if user given IPs, Usernames and passwords work
+        cap = cv2.VideoCapture('rtsp://'+usernames[i]+':'+passwords[i]+'@'+ips[i]+':554//h264Preview_01_main')
+        ret, img = cap.read()
+        if ret == True:
+            print("RTSP Stream " + str(i) + " Succesful")
+            # messagebox.showinfo("Success", "Camera is reachable via RTSP")
+            # im = Image.fromarray(img)
+            # im.save("camera1.jpeg")
+        else:
+            print("Cannot connect to camera")
+            messagebox.showerror("Error", "Camera " + str(i) + " is not reachable via RTSP")
+            return 1
 
 
-    if ret == True:
-        return 0
-    else:
-        return 1
+    messagebox.showinfo("Success", "Cameras are reachable via RTSP")
+    return 0
+
 
 # Write timelapse settings to its relevant text file
 def timelapseSettings():
 
     def saveTimelapseSettings():
 
+        global camera_ips
+        global camera_usernames
+        global camera_passwords
+        global camera_interval
+
+
         # Get data from text boxes
         camera_ips = IPInputText.get(1.0, "end-1c")
         camera_usernames = useranameInputText.get(1.0, "end-1c")
         camera_passwords = passwordInputText.get(1.0, "end-1c")
-        interval = intervalInputText.get(1.0, "end-1c")
+        camera_interval = intervalInputText.get(1.0, "end-1c")
 
+
+        # Remove whitespace from strings
+        camera_ips = re.sub(r"\s+", "", camera_ips, flags=re.UNICODE)
+        camera_usernames = re.sub(r"\s+", "", camera_usernames, flags=re.UNICODE)
+        camera_passwords = re.sub(r"\s+", "", camera_passwords, flags=re.UNICODE)
+        camera_interval = re.sub(r"\s+", "", camera_interval, flags=re.UNICODE)
+
+
+        print("SaveTimelapseSettings()")
+        print(camera_ips)
+        print(camera_usernames)
+        print(camera_passwords)
+        print(camera_interval)
+
+
+        # List data structures are filled 
+        loadTimelapseSettings()
 
         # Check data validity
-        quit = testRTSPCameras(camera_ips, camera_usernames, camera_passwords, interval)
+        quit = testRTSPCameras()
 
 
         if quit == 1:
@@ -187,12 +237,16 @@ def timelapseSettings():
 
             # Write to file (for timelapse.sh script)
             timelapse_settings_file = open("timelapse_settings.txt", "w")
-            timelapse_settings_file.write(interval+"\n")
+            timelapse_settings_file.write(camera_interval+"\n")
             timelapse_settings_file.write(camera_ips+"\n")
             timelapse_settings_file.write(camera_usernames+"\n")
             timelapse_settings_file.write(camera_passwords+"\n")
             timelapse_settings_file.close()
-
+            print("Saving ")
+            print(camera_interval)
+            print(camera_ips)
+            print(camera_usernames)
+            print(camera_passwords)
             print("Saved timelapse settings")
             messagebox.showinfo("Success", "Saved timelapse settings")
 
@@ -207,25 +261,25 @@ def timelapseSettings():
     # TextBox Creation
     IPInputText = tk.Text(popup, height = 1, width = 20) 
     IPInputText.grid(row=2,column=0)
-    IPInputText.insert(END,camera_ips.rstrip())
+    IPInputText.insert(END,camera_ips)
 
     # IPInputText.insert(0, "This is the default text")
 
     tk.Label(popup, text="Useranmes").grid(row=3,column=0)
     useranameInputText = tk.Text(popup, height = 1, width = 20) 
     useranameInputText.grid(row=4,column=0)
-    useranameInputText.insert(END, camera_usernames.rstrip())
+    useranameInputText.insert(END, camera_usernames)
 
 
     tk.Label(popup, text="Passwords").grid(row=5,column=0)
     passwordInputText = tk.Text(popup, height = 1, width = 20) 
     passwordInputText.grid(row=6,column=0)
-    passwordInputText.insert(END,camera_passwords.rstrip())
+    passwordInputText.insert(END,camera_passwords)
 
     tk.Label(popup, text="Interval (seconds)").grid(row=7,column=0)
     intervalInputText = tk.Text(popup, height = 1, width = 20) 
     intervalInputText.grid(row=8,column=0)
-    intervalInputText.insert(END,camera_interval.rstrip())
+    intervalInputText.insert(END,camera_interval)
 
     saveButton = tk.Button(popup, text = "Save", command = saveTimelapseSettings)
     saveButton.grid(row=9, column=0)
@@ -479,10 +533,6 @@ def startTimelapse():
     cam_username = "admin"
     cam_pass = "admin"
 
-    camera_ips = ""
-    camera_usernames = ""
-    camera_passwords = ""
-    camera_interval = ""
 
     # This updates the global variables but is not used anywhere in this function
     readTimelapseSettings()

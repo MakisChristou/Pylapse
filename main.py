@@ -572,12 +572,12 @@ def startTimelapse():
 
 
     # Write to file (for timelapse.sh script)
-    render_settings_file = open("timelapse_settings.txt", "w")
-    render_settings_file.write(interval+"\n")
-    render_settings_file.write(cam_ip+"\n")
-    render_settings_file.write(cam_username+"\n")
-    render_settings_file.write(cam_pass+"\n")
-    render_settings_file.close()
+    timelapse_settings_file = open("timelapse_settings.txt", "w")
+    timelapse_settings_file.write(interval+"\n")
+    timelapse_settings_file.write(cam_ip+"\n")
+    timelapse_settings_file.write(cam_username+"\n")
+    timelapse_settings_file.write(cam_pass+"\n")
+    timelapse_settings_file.close()
 
 
     command = ['pgrep', 'timelapse.sh']

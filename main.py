@@ -34,17 +34,17 @@ playbackThread = threading.Thread()
 renderingThread = threading.Thread()
 timelapseThread = threading.Thread()
 
-ips = [] # Filled in readTimelapseSettings()
-usernames = [] # Filled in readTimelapseSettings()
-passwords = [] # Filled in readTimelapseSettings()
+ips = [] # Filled in loadTimelapseSettings()
+usernames = [] # Filled in loadTimelapseSettings()
+passwords = [] # Filled in loadTimelapseSettings()
 
 cameras=0
 current_page = 0
 
-camera_ips = ""
-camera_usernames = ""
-camera_passwords = ""
-camera_interval = ""
+camera_ips = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
+camera_usernames = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
+camera_passwords = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
+camera_interval = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
 
 
 # loads lits data structures from string data structures
@@ -189,7 +189,6 @@ def testRTSPCameras():
 
     messagebox.showinfo("Success", "Cameras are reachable via RTSP")
     return 0
-
 
 # Write timelapse settings to its relevant text file
 def timelapseSettings():
@@ -520,11 +519,6 @@ def runTimelapseScript():
 
 # Main Functionality of app is here
 def startTimelapse():
-
-    # Check if timelapse file exists
-
-
-    # Parse it and save cameras and interval
 
 
     # Hardcoded for developement

@@ -1,4 +1,4 @@
 60
-192.168.10.149
-admin
-admin
+192.168.10.149,192.168.10.10
+admin,admin
+admin,imeenagourounakivromikopoli

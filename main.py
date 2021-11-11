@@ -32,10 +32,86 @@ interval=10
 playbackThread = threading.Thread()
 renderingThread = threading.Thread()
 timelapseThread = threading.Thread()
-ips = []
-usernames = []
-passwords = []
 
+ips = [] # Filled in readTimelapseSettings()
+usernames = [] # Filled in readTimelapseSettings()
+passwords = [] # Filled in readTimelapseSettings()
+
+cameras=0
+current_page = 0
+
+camera_ips = ""
+camera_usernames = ""
+camera_passwords = ""
+camera_interval = ""
+
+
+
+# Test if timelapse file exists, if so save results in global variables
+def readTimelapseSettings():
+
+    # Attempt to read timelapse_settings.txt
+    file_exists = os.path.exists("timelapse_settings.txt")
+
+    global camera_ips
+    global camera_usernames
+    global camera_passwords
+    global camera_interval
+
+
+    if file_exists:
+        f = open("timelapse_settings.txt","r")
+        lines = f.readlines()
+        camera_interval = lines[0]
+        camera_ips = lines[1]
+        camera_usernames = lines[2]
+        camera_passwords = lines[3]
+
+
+        a = camera_ips.count(',')
+        b = camera_usernames.count(',')
+        c = camera_passwords.count(',')
+
+
+        if a != b or a != c or c != b:
+            print("Wrong timelapse_settings.txt format")
+            messagebox.showerror("Error", "Wrong timelapse_settings.txt format")
+            return
+
+        # Construct ips global list
+        temp = ""
+        for char in camera_ips:
+            if char == "," or char == "\n":
+                ips.append(temp)
+                temp = ""
+            if char != ",":
+                temp+=char
+
+        # Construct usernames global list
+        temp = ""
+        for char in camera_usernames:
+            if char == "," or char == "\n":
+                usernames.append(temp)
+                temp = ""
+            
+            if char != ",":
+                temp+=char
+
+        # Construct passwords global list
+        temp = ""
+        for char in camera_passwords:
+            if char == "," or char == "\n":
+                passwords.append(temp)
+                temp = ""
+            
+            if char != ",":
+                temp+=char
+
+
+    print(ips)
+    print(usernames)
+    print(passwords)
+    return 
 
 # Test if all of the cameras are reachable via RTSP (returns 1 if fail and 0 if success)
 def testRTSPCameras(camera_ips, camera_usernames, camera_passwords, interval):
@@ -122,24 +198,9 @@ def timelapseSettings():
 
         return
     
-    # Attempt to read timelapse_settings.txt
-    file_exists = os.path.exists("timelapse_settings.txt")
 
-    camera_ips = ""
-    camera_usernames = ""
-    camera_passwords = ""
-    camera_interval = ""
-
-
-    if file_exists:
-        f = open("timelapse_settings.txt","r")
-        lines = f.readlines()
-        camera_interval = lines[0]
-        camera_ips = lines[1]
-        camera_usernames = lines[2]
-        camera_passwords = lines[3]
-        print(lines[0])
-
+    # Saves results in global variables
+    readTimelapseSettings()
 
     popup = tk.Toplevel()
     tk.Label(popup, text="Camera IPs").grid(row=0,column=0)
@@ -418,9 +479,18 @@ def startTimelapse():
     cam_username = "admin"
     cam_pass = "admin"
 
+    camera_ips = ""
+    camera_usernames = ""
+    camera_passwords = ""
+    camera_interval = ""
+
+    # This updates the global variables but is not used anywhere in this function
+    readTimelapseSettings()
+
     # Check if variables are empty
     if not interval or not cam_ip or not cam_username or not cam_pass:
         print("At least one variable is empty")
+        messagebox.showerror("Error", "At least one timelapse variable is empty")
         return
 
 
@@ -429,7 +499,12 @@ def startTimelapse():
         int(interval)
     except Exception as e:
         print("Invalid Interval")
+        messagebox.showerror("Error", "Invalid interval")
         return
+
+
+
+    # Single Camera Case
 
     # Check if user given IPs, Usernames and passwords work
     cap = cv2.VideoCapture('rtsp://'+cam_username+':'+cam_pass+'@'+cam_ip+':554//h264Preview_01_main')
@@ -729,12 +804,13 @@ if __name__ == "__main__":
     filemenu.add_separator()
 
     filemenu.add_command(label="Exit", command=root.quit)
-    menubar.add_cascade(label="File", menu=filemenu)
+
+    # menubar.add_cascade(label="File", menu=filemenu)
+
+
     editmenu = Menu(menubar, tearoff=0)
     editmenu.add_command(label="Undo", command=donothing)
-
     editmenu.add_separator()
-
     editmenu.add_command(label="Cut", command=donothing)
     editmenu.add_command(label="Copy", command=donothing)
     editmenu.add_command(label="Paste", command=donothing)
@@ -745,7 +821,7 @@ if __name__ == "__main__":
 
     # Settings Menu
     settingsmenu = Menu(menubar, tearoff=0)
-    menubar.add_cascade(label="Settings", menu=settingsmenu)
+    # menubar.add_cascade(label="Settings", menu=settingsmenu)
 
 
     # Timelapse Menu
@@ -756,7 +832,7 @@ if __name__ == "__main__":
     timelapsemenu.add_command(label="Settings", command=timelapseSettings)
     menubar.add_cascade(label="Timelapse", menu=timelapsemenu)
 
-    menubar.add_cascade(label="Edit", menu=editmenu)
+    # menubar.add_cascade(label="Edit", menu=editmenu)
     helpmenu = Menu(menubar, tearoff=0)
     helpmenu.add_command(label="Help Index", command=donothing)
     helpmenu.add_command(label="About...", command=donothing)

@@ -21,6 +21,7 @@ import tempfile
 import threading
 import signal
 import re
+import sys
 
 
 root = tk.Tk()
@@ -37,11 +38,16 @@ timelapseThread = threading.Thread()
 ips = [] # Filled in loadTimelapseSettings()
 usernames = [] # Filled in loadTimelapseSettings()
 passwords = [] # Filled in loadTimelapseSettings()
+cameras = [] # Filled in loadTimelapseSettings()
+
 
 camera_ips = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
 camera_usernames = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
 camera_passwords = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
 camera_interval = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
+
+
+
 
 # start_date_cal = DateEntry()
 # end_date_cal = DateEntry()
@@ -122,6 +128,11 @@ def loadTimelapseSettings():
     global camera_passwords
     global camera_interval
 
+    global ips
+    global usernames
+    global passwords
+    global cameras
+
     # Remove whitespace from strings
     camera_ips = re.sub(r"\s+", "", camera_ips, flags=re.UNICODE)
     camera_usernames = re.sub(r"\s+", "", camera_usernames, flags=re.UNICODE)
@@ -164,6 +175,7 @@ def loadTimelapseSettings():
     ips.clear()
     usernames.clear()
     passwords.clear()
+    cameras.clear()
 
     # Construct ips global list
     temp = ""
@@ -201,6 +213,10 @@ def loadTimelapseSettings():
             temp+=char
     passwords.append(temp)
 
+
+    for i in range(len(ips)):
+        cameras.append(i)
+
     return
 
 # Test if timelapse file exists, if so save results in global variables
@@ -222,7 +238,7 @@ def readTimelapseSettings():
         camera_ips = lines[1]
         camera_usernames = lines[2]
         camera_passwords = lines[3]
-
+    
 
         # Check if variables are empty
         if len(lines) != 4:
@@ -234,6 +250,10 @@ def readTimelapseSettings():
         # List data structures are filled 
         loadTimelapseSettings()
 
+    else:
+        print("timelapse_settings.txt file does not exist")
+        messagebox.showerror("Error", "timelapse_settings.txt file does not exist")
+        return
 
     print(ips)
     print(usernames)
@@ -320,7 +340,6 @@ def timelapseSettings():
             print(camera_passwords)
             print("Saved timelapse settings")
             messagebox.showinfo("Success", "Saved timelapse settings")
-
         return
     
 
@@ -372,9 +391,9 @@ def checkRender(picture_count):
             print(picture_count)
 
             if ffmpeg_frames_rendered == str(picture_count):
-                messagebox.showinfo("Success", "Video has been succeesfully rendered")
+                messagebox.showinfo("Success", "Video has been successfully rendered")
             else:
-                messagebox.showerror("Error", "Video has not rendered sucesfully")
+                messagebox.showerror("Error", "Video has not rendered successfully")
             break
 
 # Deletes files in temp dir to shrink duration
@@ -419,6 +438,9 @@ def chooseDuration(picture_count):
     # Pause execution until user chooses duration
     root.wait_window(popup)
 
+    # If user doesn't input duration and just closes window
+    if not user_choice:
+        return -1
 
     keep_one_every = durations.index(int(user_choice))+1
 
@@ -509,66 +531,88 @@ def renderVideo():
     render_settings_file.close()
 
 
-    
+    print("Camera Selection: " + camera_selection.get())
 
-    picture_count = 0
+    # If this is null, quit
+    if camera_selection:
 
-    # Make sure temp dir is empty
-    if os.path.isdir("temp"):
-        shutil.rmtree("temp")
+        picture_count = 0
+        # Make sure temp dir is empty
+        if os.path.isdir("temp"):
+            shutil.rmtree("temp")
 
-    os.mkdir("temp")
+        os.mkdir("temp")
 
-    
-    print("Copying files to temp dir")
-    pictures = os.listdir(path='Output/Pictures')
+        camera_directory = 'Output/Pictures/Camera'+camera_selection.get()
 
-    # Why do I have to do this? (bug)
-    # pictures.remove(".jpeg")
-
-    # Copy everyting to temp dir
-    for file in pictures:
-        # print(file)
-        unix_epoch = file[0:10]
-        temp_date_object = datetime.datetime.fromtimestamp(int(unix_epoch))
-        if temp_date_object > start_date_object and temp_date_object < end_date_object:
-            picture_count+=1
-            shutil.copy("Output/Pictures/"+file, "temp")
+        # Check if camera directory exists
+        if not os.path.exists(camera_directory):
+            print(camera_directory + " does not exist")
+            messagebox.showerror("Error", camera_directory + " does not exist")
+            return
 
 
-    # Give duration options, delete temp files to achieve selected duration
-    picture_count = chooseDuration(picture_count)
+        pictures = os.listdir(path='Output/Pictures/Camera'+camera_selection.get())
 
 
-    # Render if we have pictures
-    if picture_count >= 1:
-        print("Rendering using ffmpeg")
+        # print(pictures)
+        # Why do I have to do this? (bug)
+        # pictures.remove(".jpeg")
 
-        global renderingThread
+        print("Copying files to temp dir")
 
-        if renderingThread.is_alive():
-            print("Renderinf thread alive, won't start a new one")
-        else:   
-            # Start Rendering in the background
-            renderingThread = threading.Thread(target=runRenderingScript)
-            renderingThread.setDaemon(True)
-            renderingThread.start()
+        # Copy everyting to temp dir
+        for file in pictures:
+            # print(file)
+            unix_epoch = file[0:10]
+            temp_date_object = datetime.datetime.fromtimestamp(int(unix_epoch))
+            if temp_date_object > start_date_object and temp_date_object < end_date_object:
+                picture_count+=1
+                shutil.copy("Output/Pictures/Camera"+camera_selection.get()+"/"+file, "temp")
 
-        # Call progress bar 
-        progressBar(picture_count)
+
+        # Give duration options, delete temp files to achieve selected duration
+        picture_count = chooseDuration(picture_count)
+
+
+        # Render if we have pictures
+        if picture_count >= 1:
+            print("Rendering using ffmpeg")
+
+            global renderingThread
+
+            if renderingThread.is_alive():
+                print("Rendering thread alive, won't start a new one")
+            else:   
+                # Start Rendering in the background
+                renderingThread = threading.Thread(target=runRenderingScript)
+                renderingThread.setDaemon(True)
+                renderingThread.start()
+
+            # Call progress bar 
+            progressBar(picture_count)
+
+        elif picture_count == -1:
+            print("Aborting Render")
+            messagebox.showerror("Error", "Aborting Render")
+            return
+        else:
+            print("Not enough pictures for playback")
+            messagebox.showerror("Error", "Not enough pictures for rendering")
+            return
+
+        # Remove temp directory
+        if os.path.isdir("temp"):
+            shutil.rmtree("temp")
+
+
+        # Check if video has been rendered succesfully
+        checkRender(picture_count)
 
     else:
-        print("Not enough pictures for playback")
-        messagebox.showerror("Error", "Not enough pictures for rendering")
+        print("No Camera Selected")
+        messagebox.showerror("Error", "No camera selected for rendering")
         return
-
-    # Remove temp directory
-    if os.path.isdir("temp"):
-        shutil.rmtree("temp")
-
-
-    # Check if video has been rendered succesfully
-    checkRender(picture_count)
 
 # Runs timelapse.sh script as a separate thread so that tkinter can properly update the GUI
 def runTimelapseScript():
@@ -592,7 +636,7 @@ def runTimelapseScript():
 # Main Functionality of app is here
 def startTimelapse():
 
-    # Updates the global lit variables
+    # Updates the global list variables
     readTimelapseSettings()
 
     quit = testRTSPCameras()
@@ -657,11 +701,20 @@ def stopTimelapse():
 def timelapsePlayback():
     
     global label
+    global camera_selection
 
     # Get current thread so we can see if its supposed to stop
     t = threading.current_thread()
 
-    pictures = os.listdir(path='Output/Pictures')
+    if not camera_selection.get():
+        print("No camera selected")
+        messagebox.showerror("Error", "No camera selected")
+        return
+
+    camera_directory = 'Output/Pictures/Camera' + camera_selection.get()
+    
+
+    pictures = os.listdir(path=camera_directory)
     alphabetic_pictures = sorted(pictures)
 
     if not pictures:
@@ -709,7 +762,7 @@ def timelapsePlayback():
         # Check if we should still run (quits if this is true)
         if not getattr(t, "do_run", True):
             # Load first picture when stopping (more intuitive)
-            temp_image = ImageTk.PhotoImage(Image.open("Output/Pictures/"+alphabetic_pictures[0]).resize((1000,700), Image.ANTIALIAS))
+            temp_image = ImageTk.PhotoImage(Image.open(camera_directory + "/" + alphabetic_pictures[0]).resize((1000,700), Image.ANTIALIAS))
             label.configure(image = temp_image)
             label.image = temp_image
             break
@@ -717,7 +770,7 @@ def timelapsePlayback():
         # Check if playback dates are within user selected dates
         if temp_date_object > start_date_object and temp_date_object < end_date_object:
             # Keep loading the next image if not supposed to stop
-            temp_image = ImageTk.PhotoImage(Image.open("Output/Pictures/"+file).resize((1000,700), Image.ANTIALIAS))
+            temp_image = ImageTk.PhotoImage(Image.open(camera_directory + "/" + file).resize((1000,700), Image.ANTIALIAS))
             label.configure(image = temp_image)
             label.image = temp_image
             playback_flag = 1
@@ -898,6 +951,7 @@ if __name__ == "__main__":
     # Labels for clarity
     tk.Label(root, text="Start Date").place(x=400, y=820)
     tk.Label(root, text="End Date").place(x=600, y=820)
+    tk.Label(root, text="Select Camera").place(x=200, y=820)
 
     # Picking Dates
     # Get current date
@@ -910,6 +964,21 @@ if __name__ == "__main__":
     end_date_cal = DateEntry(root, width=12, year=now.year, month=now.month, day=now.day, 
     background='darkblue', foreground='white', borderwidth=2)
     end_date_cal.place(x=600, y=850)
+
+
+    readTimelapseSettings()
+    loadTimelapseSettings()
+
+
+    camera_selection = tk.StringVar(root)
+
+    # To avoid crash
+    if len(cameras) != 0:
+        camera_selection.set(cameras[0])
+        camera_option = tk.OptionMenu(root, camera_selection, *cameras)
+        camera_option.config(width=12, font=('Helvetica', 12))
+        camera_option.place(x=200, y = 850)
+
 
 
     # Menu Items
@@ -999,34 +1068,35 @@ if __name__ == "__main__":
         messagebox.showerror("Error", "Wrong date format")
         
 
-    for i in range(len(ips)):
-        print(i)
+    # for i in range(len(ips)):
+    #     print(i)
     
-    # If we have pictures to show and user given dates are valid load first picture
-    if pictures and valid_dates:
-        for file in alphabetic_pictures:
+    # # If we have pictures to show and user given dates are valid load first picture
+    # if pictures and valid_dates:
+    #     for file in alphabetic_pictures:
 
-            # Skip anything that is not a jpeg
-            if file[-5:] != ".jpeg":
-                continue
+    #         # Skip anything that is not a jpeg
+    #         if file[-5:] != ".jpeg":
+    #             continue
 
-            unix_epoch = file[0:10]
-            temp_date_object = datetime.datetime.fromtimestamp(int(unix_epoch))
-            if temp_date_object > start_date_object and temp_date_object < end_date_object:
+    #         unix_epoch = file[0:10]
+    #         temp_date_object = datetime.datetime.fromtimestamp(int(unix_epoch))
+    #         if temp_date_object > start_date_object and temp_date_object < end_date_object:
 
-                # Show first image on canvas
-                first_image = ImageTk.PhotoImage(Image.open("Output/Pictures/" + file).resize((250*4,175*4), Image.ANTIALIAS))
-                # image_on_canvas = canvas.create_image(20,20, anchor=NW, image=first_image)
-                label = tk.Label(root, image=first_image)
-                label.place(x=20, y=20)
-                break
+    #             # Show first image on canvas
+    #             first_image = ImageTk.PhotoImage(Image.open("Output/Pictures/" + file).resize((250*4,175*4), Image.ANTIALIAS))
+    #             # image_on_canvas = canvas.create_image(20,20, anchor=NW, image=first_image)
+    #             label = tk.Label(root, image=first_image)
+    #             label.place(x=20, y=20)
+    #             break
 
-    else:
-        messagebox.showerror("Error", "No Pictures to show")
-        label = tk.Label(root)
-        label.place(x=20, y=20)
+    # else:
+    #     messagebox.showerror("Error", "No Pictures to show")
+    #     label = tk.Label(root)
+    #     label.place(x=20, y=20)
 
-    
+    label = tk.Label(root)
+    label.place(x=20, y=20)
 
 
     # Run GUI

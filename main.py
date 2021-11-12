@@ -38,14 +38,81 @@ ips = [] # Filled in loadTimelapseSettings()
 usernames = [] # Filled in loadTimelapseSettings()
 passwords = [] # Filled in loadTimelapseSettings()
 
-cameras=0
-current_page = 0
-
 camera_ips = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
 camera_usernames = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
 camera_passwords = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
 camera_interval = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
 
+# start_date_cal = DateEntry()
+# end_date_cal = DateEntry()
+
+
+# Loads first image on canvas (by default loads first image for today)
+def loadFirstImage():
+
+    global start_date_cal
+    global end_date_cal
+    global label
+
+    print(start_date_cal)
+    print(end_date_cal)
+
+
+    return 
+
+# Writes internal string data structures in the timelapse_settings.txt file
+def writeTimelapseSettings():
+
+    global camera_ips
+    global camera_usernames
+    global camera_passwords
+    global camera_interval
+
+    # Remove whitespace from strings
+    camera_ips = re.sub(r"\s+", "", camera_ips, flags=re.UNICODE)
+    camera_usernames = re.sub(r"\s+", "", camera_usernames, flags=re.UNICODE)
+    camera_passwords = re.sub(r"\s+", "", camera_passwords, flags=re.UNICODE)
+    camera_interval = re.sub(r"\s+", "", camera_interval, flags=re.UNICODE)
+
+    print("loadTimelapseSettings()")
+    print(camera_ips)
+    print(camera_usernames)
+    print(camera_passwords)
+    print(camera_interval)
+
+
+    # Check if empty variables
+    if not camera_interval or not camera_usernames or not camera_passwords:
+        print("Some variables are empty")
+        messagebox.showerror("Error", "Wrong timelapse_settings.txt format")
+        return
+
+    # Check if interval is integer
+    try:
+        int(camera_interval)
+    except Exception as e:
+        print("Invalid Interval")
+        messagebox.showerror("Error", "Interval must be an integer")
+        return
+
+    # Get number of commas
+    a = camera_ips.count(',')
+    b = camera_usernames.count(',')
+    c = camera_passwords.count(',')
+
+    # Check that ips, usernames and passwords have the same commas
+    if a != b or a != c or c != b:
+        print("Wrong timelapse_settings.txt format")
+        messagebox.showerror("Error", "Wrong timelapse_settings.txt format")
+        return
+
+    # Write to file (for timelapse.sh script)
+    timelapse_settings_file = open("timelapse_settings.txt", "w")
+    timelapse_settings_file.write(camera_interval+"\n")
+    timelapse_settings_file.write(camera_ips+"\n")
+    timelapse_settings_file.write(camera_usernames+"\n")
+    timelapse_settings_file.write(camera_passwords+"\n")
+    timelapse_settings_file.close()
 
 # loads lits data structures from string data structures
 def loadTimelapseSettings():
@@ -67,6 +134,11 @@ def loadTimelapseSettings():
     print(camera_passwords)
     print(camera_interval)
 
+    # Check if empty variables
+    if not camera_interval or not camera_usernames or not camera_passwords:
+        print("Some variables are empty")
+        messagebox.showerror("Error", "Wrong timelapse_settings.txt format")
+        return
 
     # Check if interval is integer
     try:
@@ -520,58 +592,20 @@ def runTimelapseScript():
 # Main Functionality of app is here
 def startTimelapse():
 
-
-    # Hardcoded for developement
-    interval = "60"
-    cam_ip = "192.168.10.149"
-    cam_username = "admin"
-    cam_pass = "admin"
-
-
-    # This updates the global variables but is not used anywhere in this function
+    # Updates the global lit variables
     readTimelapseSettings()
 
-    # Check if variables are empty
-    if not interval or not cam_ip or not cam_username or not cam_pass:
-        print("At least one variable is empty")
-        messagebox.showerror("Error", "At least one timelapse variable is empty")
+    quit = testRTSPCameras()
+
+    # Quit if RTSP is not reachable
+    if quit == 1:
         return
 
+    
 
-    # Check if interval is integer
-    try:
-        int(interval)
-    except Exception as e:
-        print("Invalid Interval")
-        messagebox.showerror("Error", "Invalid interval")
-        return
+    # timelapse_settings.txt is written here
+    writeTimelapseSettings()
 
-
-
-    # Single Camera Case
-
-    # Check if user given IPs, Usernames and passwords work
-    cap = cv2.VideoCapture('rtsp://'+cam_username+':'+cam_pass+'@'+cam_ip+':554//h264Preview_01_main')
-    ret, img = cap.read()
-    if ret == True:
-        print("RTSP Stream Succesful")
-        # im = Image.fromarray(img)
-        # im.save("camera1.jpeg")
-    else:
-        print("Cannot connect to camera")
-        return
-        
-    cap.release()
-    cv2.destroyAllWindows()
-
-
-    # Write to file (for timelapse.sh script)
-    timelapse_settings_file = open("timelapse_settings.txt", "w")
-    timelapse_settings_file.write(interval+"\n")
-    timelapse_settings_file.write(cam_ip+"\n")
-    timelapse_settings_file.write(cam_username+"\n")
-    timelapse_settings_file.write(cam_pass+"\n")
-    timelapse_settings_file.close()
 
 
     command = ['pgrep', 'timelapse.sh']
@@ -635,10 +669,44 @@ def timelapsePlayback():
         return
 
 
+    # Check if dates were given correctly
+    if start_date_cal.get_date() > end_date_cal.get_date():
+        messagebox.showerror("Error", "Start date must be before end date")
+        return
+
+
+    # Convert them to strings because of bad life choices
+    start_date = str(start_date_cal.get_date().day)+"/"+str(start_date_cal.get_date().month)+"/"+str(start_date_cal.get_date().year) # e.g. start_date "15/10/2021"
+    end_date = str(end_date_cal.get_date().day)+"/"+str(end_date_cal.get_date().month)+"/"+str(end_date_cal.get_date().year) # e.g. start_date "17/10/2021"
+
+    # Convert user input to date object and catch potential exceptions (Not gonna happen but I had this coded up so ohh well)
+    try:
+        start_date_object = datetime.datetime.strptime(start_date,"%d/%m/%Y")
+        end_date_object = datetime.datetime.strptime(end_date+" 23:59:59","%d/%m/%Y %H:%M:%S")
+    except Exception as e:
+        print("Wrong date format")
+        messagebox.showerror("Error", "Wrong date format")
+        return
+
+     
+    print("timelapsePlayback()")
+    print(start_date_object)
+    print(end_date_object)
+
+    playback_flag = 0
+
     for file in alphabetic_pictures:
+        
+        # Skip anything that is not a jpeg
+        if file[-5:] != ".jpeg":
+            continue
+
         print(file)
 
-        # Check if we should still run
+        unix_epoch = file[0:10]
+        temp_date_object = datetime.datetime.fromtimestamp(int(unix_epoch))
+
+        # Check if we should still run (quits if this is true)
         if not getattr(t, "do_run", True):
             # Load first picture when stopping (more intuitive)
             temp_image = ImageTk.PhotoImage(Image.open("Output/Pictures/"+alphabetic_pictures[0]).resize((1000,700), Image.ANTIALIAS))
@@ -646,11 +714,20 @@ def timelapsePlayback():
             label.image = temp_image
             break
         
-        # Keep loading the next image if not supposed to stop
-        temp_image = ImageTk.PhotoImage(Image.open("Output/Pictures/"+file).resize((1000,700), Image.ANTIALIAS))
-        label.configure(image = temp_image)
-        label.image = temp_image
-        # time.sleep(1)
+        # Check if playback dates are within user selected dates
+        if temp_date_object > start_date_object and temp_date_object < end_date_object:
+            # Keep loading the next image if not supposed to stop
+            temp_image = ImageTk.PhotoImage(Image.open("Output/Pictures/"+file).resize((1000,700), Image.ANTIALIAS))
+            label.configure(image = temp_image)
+            label.image = temp_image
+            playback_flag = 1
+            # time.sleep(1)
+
+
+    # If no pictures are played back tell user
+    if playback_flag == 0:
+        messagebox.showerror("Error", "No pictures captured for selected dates")
+        return
 
 # Starts timelapse playback thread in the background
 def startPlayback():
@@ -898,29 +975,59 @@ if __name__ == "__main__":
         shutil.rmtree("temp")
 
 
+
+    # Load first image on canvas
     pictures = os.listdir(path='Output/Pictures')
     alphabetic_pictures = sorted(pictures)
 
-    if pictures:
-        # Show first image on canvas
-        first_image = ImageTk.PhotoImage(Image.open("Output/Pictures/" + alphabetic_pictures[0]).resize((1000,700), Image.ANTIALIAS))
-        # image_on_canvas = canvas.create_image(20,20, anchor=NW, image=first_image)
+
+    # Convert them to strings because of bad life choices
+    start_date = str(start_date_cal.get_date().day)+"/"+str(start_date_cal.get_date().month)+"/"+str(start_date_cal.get_date().year) # e.g. start_date "15/10/2021"
+    end_date = str(end_date_cal.get_date().day)+"/"+str(end_date_cal.get_date().month)+"/"+str(end_date_cal.get_date().year) # e.g. start_date "17/10/2021"
+
+
+    valid_dates = False
+
+    # Convert user input to date object and catch potential exceptions (Not gonna happen but I had this coded up so ohh well)
+    try:
+        start_date_object = datetime.datetime.strptime(start_date,"%d/%m/%Y")
+        end_date_object = datetime.datetime.strptime(end_date+" 23:59:59","%d/%m/%Y %H:%M:%S")
+        valid_dates = True
+
+    except Exception as e:
+        print("Wrong date format")
+        messagebox.showerror("Error", "Wrong date format")
+        
+
+    for i in range(len(ips)):
+        print(i)
     
-        label = tk.Label(root, image=first_image)
-        label.place(x=20, y=20)
+    # If we have pictures to show and user given dates are valid load first picture
+    if pictures and valid_dates:
+        for file in alphabetic_pictures:
+
+            # Skip anything that is not a jpeg
+            if file[-5:] != ".jpeg":
+                continue
+
+            unix_epoch = file[0:10]
+            temp_date_object = datetime.datetime.fromtimestamp(int(unix_epoch))
+            if temp_date_object > start_date_object and temp_date_object < end_date_object:
+
+                # Show first image on canvas
+                first_image = ImageTk.PhotoImage(Image.open("Output/Pictures/" + file).resize((250*4,175*4), Image.ANTIALIAS))
+                # image_on_canvas = canvas.create_image(20,20, anchor=NW, image=first_image)
+                label = tk.Label(root, image=first_image)
+                label.place(x=20, y=20)
+                break
 
     else:
         messagebox.showerror("Error", "No Pictures to show")
         label = tk.Label(root)
         label.place(x=20, y=20)
 
-    # label = tk.Label(root, image=first_image)
-    # label.place(x=20, y=20)
+    
 
 
     # Run GUI
     root.mainloop()
-
-
-    # if timelapseThread.is_alive():
-    #     timelapseThread.join()

@@ -523,18 +523,20 @@ def renderVideo():
         return
 
 
-    # Write to file (for render.sh script)
-    render_settings_file = open("render_settings.txt", "w")
-    render_settings_file.write(start_date.replace("/", "-")+"\n")
-    render_settings_file.write(end_date.replace("/", "-")+"\n")
-    render_settings_file.write(framerate+"\n")
-    render_settings_file.close()
-
-
     print("Camera Selection: " + camera_selection.get())
 
     # If this is null, quit
     if camera_selection:
+
+
+        # Write to file (for render.sh script)
+        render_settings_file = open("render_settings.txt", "w")
+        render_settings_file.write(start_date.replace("/", "-")+"\n")
+        render_settings_file.write(end_date.replace("/", "-")+"\n")
+        render_settings_file.write(framerate+"\n")
+        render_settings_file.write(camera_selection.get()+"\n")
+        render_settings_file.close()
+
 
         picture_count = 0
         # Make sure temp dir is empty
@@ -720,6 +722,7 @@ def timelapsePlayback():
     if not pictures:
         messagebox.showerror("Error", "No Pictures to show")
         return
+
 
 
     # Check if dates were given correctly
@@ -923,6 +926,10 @@ def runRenderingScript():
 # Actual main function
 if __name__ == "__main__":
 
+    # Load settings in internal data structures
+    readTimelapseSettings()
+    loadTimelapseSettings()
+
     # Create canvas
     canvas = tk.Canvas(root, height=900, width=1035)
 
@@ -965,9 +972,6 @@ if __name__ == "__main__":
     background='darkblue', foreground='white', borderwidth=2)
     end_date_cal.place(x=600, y=850)
 
-
-    readTimelapseSettings()
-    loadTimelapseSettings()
 
 
     camera_selection = tk.StringVar(root)
@@ -1067,6 +1071,30 @@ if __name__ == "__main__":
         print("Wrong date format")
         messagebox.showerror("Error", "Wrong date format")
         
+
+    # Show what camera is seing now
+    for i in cameras:
+
+        # Check if user given IPs, Usernames and passwords work
+        cap = cv2.VideoCapture('rtsp://'+usernames[i]+':'+passwords[i]+'@'+ips[i]+':554//h264Preview_01_main')
+        ret, img = cap.read()
+        if ret == True:
+            print("RTSP Stream " + str(i) + " Succesful")
+            # messagebox.showinfo("Success", "Camera is reachable via RTSP")
+            im = Image.fromarray(img)
+            # im.save("camera0.jpeg")
+            
+            if i == 0:
+                first_image = ImageTk.PhotoImage(im.resize((250*4,175*4), Image.ANTIALIAS))
+                image_on_canvas = canvas.create_image(20,20, anchor=NW, image=first_image)
+                upper_left = tk.Label(root, image=first_image)
+                upper_left.place(x=20, y=20)
+                break
+
+
+        else:
+            print("Cannot connect to camera")
+            messagebox.showerror("Error", "Camera " + str(i) + " is not reachable via RTSP")
 
     # for i in range(len(ips)):
     #     print(i)

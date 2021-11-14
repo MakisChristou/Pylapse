@@ -46,8 +46,7 @@ camera_usernames = "" # Filled either in readTimelapseSettings() or saveTimelaps
 camera_passwords = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
 camera_interval = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
 
-
-
+current_playback_image = 0
 
 # start_date_cal = DateEntry()
 # end_date_cal = DateEntry()
@@ -528,7 +527,6 @@ def renderVideo():
     # If this is null, quit
     if camera_selection:
 
-
         # Write to file (for render.sh script)
         render_settings_file = open("render_settings.txt", "w")
         render_settings_file.write(start_date.replace("/", "-")+"\n")
@@ -631,12 +629,20 @@ def runTimelapseScript():
             print("Stopped by stopTimelapse()")
             break
         # Take a picture and save it in Output/Pictures
-        print(subprocess.run(["./timelapse.sh"], shell=False))
+        result = subprocess.run(["./timelapse.sh"], shell=False)
+
+        if result.returncode == 1:
+            print("An error has occured in timelapse.sh")
+            messagebox.showerror("Error", "An error has occured in timelapse.sh")
+            return
 
         time.sleep(interval)
 
 # Main Functionality of app is here
 def startTimelapse():
+
+
+    global camera_selection
 
     # Updates the global list variables
     readTimelapseSettings()
@@ -651,6 +657,23 @@ def startTimelapse():
 
     # timelapse_settings.txt is written here
     writeTimelapseSettings()
+
+    print(cameras)
+
+
+    # Test of camera folders exist, if not create them
+    if camera_selection:
+
+        for i in range(len(cameras)):
+            camera_folder = os.path.exists("Output/Pictures/Camera"+str(i))
+
+            # print("Output/Pictures/Camera"+str(i), " ", camera_folder)
+
+            if not camera_folder:
+                os.mkdir("Output/Pictures/Camera"+str(i))
+
+
+
 
 
 
@@ -704,6 +727,9 @@ def timelapsePlayback():
     
     global label
     global camera_selection
+    global current_playback_image
+    global p2 # Main menu progress bar
+    global root # Main menu tkinter thingy
 
     # Get current thread so we can see if its supposed to stop
     t = threading.current_thread()
@@ -751,6 +777,8 @@ def timelapsePlayback():
 
     playback_flag = 0
 
+    progress = 0
+
     for file in alphabetic_pictures:
         
         # Skip anything that is not a jpeg
@@ -761,6 +789,8 @@ def timelapsePlayback():
 
         unix_epoch = file[0:10]
         temp_date_object = datetime.datetime.fromtimestamp(int(unix_epoch))
+        current_playback_image = alphabetic_pictures.index(file)
+        progress = int(current_playback_image/(len(alphabetic_pictures))*100)
 
         # Check if we should still run (quits if this is true)
         if not getattr(t, "do_run", True):
@@ -768,7 +798,14 @@ def timelapsePlayback():
             temp_image = ImageTk.PhotoImage(Image.open(camera_directory + "/" + alphabetic_pictures[0]).resize((1000,700), Image.ANTIALIAS))
             label.configure(image = temp_image)
             label.image = temp_image
+            p2["value"] = 0
+            root.update() 
             break
+
+        if not getattr(t, "do_pause", True):
+            print("Stopped at picture with index ", current_playback_image)
+            break
+
         
         # Check if playback dates are within user selected dates
         if temp_date_object > start_date_object and temp_date_object < end_date_object:
@@ -778,6 +815,9 @@ def timelapsePlayback():
             label.image = temp_image
             playback_flag = 1
             # time.sleep(1)
+
+        p2["value"] = progress
+        root.update() 
 
 
     # If no pictures are played back tell user
@@ -810,6 +850,16 @@ def stopPlayback():
         # Signal playback thread to stop
         playbackThread.do_run = False
     
+    return
+
+# Pauses the playback process
+def pausePlayback():
+
+    if playbackThread.is_alive():
+        print("Playback Thread is running")
+        # Signal playback thread to pause
+        playbackThread.do_pause =False
+
     return
 
 # Date Choosing
@@ -922,6 +972,10 @@ def progressBar(picture_count):
 # Separate function so we can run it on its own thread
 def runRenderingScript():
     process = subprocess.run(["./render.sh"], shell=False)
+    if process.returncode == 1:
+        print("An error has occured in render.sh")
+        messagebox.showerror("Error", "n error has occured in render.sh")
+        
 
 # Actual main function
 if __name__ == "__main__":
@@ -937,22 +991,22 @@ if __name__ == "__main__":
     canvas.pack()
 
 
-    # startTimelapse = tk.Button(root,text="Start Timelapse", padx=10, pady=5, command=startTimelapse)
-    # startTimelapse.place(x=200, y=850)
-    # startTimelapse.pack()
+    # pausePlayback = tk.Button(root,text="Pause Playback  ", padx=10, pady=5, command=pausePlayback)
+    # pausePlayback.place(x=20, y=750)
+    # # pausePlayback.pack()
 
 
-    stopPlayback = tk.Button(root,text= "Stop Playback   ", padx=10, pady=5, command=stopPlayback)
-    stopPlayback.place(x=200, y=750)
+    stopPlayback = tk.Button(root,text= "Stop Playback", padx=12, pady=5, command=stopPlayback)
+    stopPlayback.place(x=200, y=760)
     # stopTimelapse.pack()
 
-    startPlayback = tk.Button(root,text= "Start Playback   ", padx=10, pady=5, command=startPlayback)
-    startPlayback.place(x=400, y=750)
+    startPlayback = tk.Button(root,text= "Start Playback", padx=12, pady=5, command=startPlayback)
+    startPlayback.place(x=400, y=760)
     # playTimelapse.pack()
 
 
-    renderVideo = tk.Button(root,text="Render Video", padx=10, pady=5, command=renderVideo)
-    renderVideo.place(x=600, y=750)
+    renderVideo = tk.Button(root,text="Render Video", padx=12, pady=5, command=renderVideo)
+    renderVideo.place(x=600, y=760)
     # renderVideo.pack()
 
     # Labels for clarity
@@ -972,6 +1026,8 @@ if __name__ == "__main__":
     background='darkblue', foreground='white', borderwidth=2)
     end_date_cal.place(x=600, y=850)
 
+    p2 = Progressbar(root, length=1000, cursor='spider', mode="determinate", orient=tk.HORIZONTAL)
+    p2.place(x=20, y=730)
 
 
     camera_selection = tk.StringVar(root)
@@ -980,7 +1036,7 @@ if __name__ == "__main__":
     if len(cameras) != 0:
         camera_selection.set(cameras[0])
         camera_option = tk.OptionMenu(root, camera_selection, *cameras)
-        camera_option.config(width=12, font=('Helvetica', 12))
+        camera_option.config(width=5, font=('Helvetica', 12))
         camera_option.place(x=200, y = 850)
 
 
@@ -1072,29 +1128,30 @@ if __name__ == "__main__":
         messagebox.showerror("Error", "Wrong date format")
         
 
-    # Show what camera is seing now
-    for i in cameras:
+    # Commented out for debugging reasons
+    # # Show what camera is seing now
+    # for i in cameras:
 
-        # Check if user given IPs, Usernames and passwords work
-        cap = cv2.VideoCapture('rtsp://'+usernames[i]+':'+passwords[i]+'@'+ips[i]+':554//h264Preview_01_main')
-        ret, img = cap.read()
-        if ret == True:
-            print("RTSP Stream " + str(i) + " Succesful")
-            # messagebox.showinfo("Success", "Camera is reachable via RTSP")
-            im = Image.fromarray(img)
-            # im.save("camera0.jpeg")
+    #     # Check if user given IPs, Usernames and passwords work
+    #     cap = cv2.VideoCapture('rtsp://'+usernames[i]+':'+passwords[i]+'@'+ips[i]+':554//h264Preview_01_main')
+    #     ret, img = cap.read()
+    #     if ret == True:
+    #         print("RTSP Stream " + str(i) + " Succesful")
+    #         # messagebox.showinfo("Success", "Camera is reachable via RTSP")
+    #         im = Image.fromarray(img)
+    #         # im.save("camera0.jpeg")
             
-            if i == 0:
-                first_image = ImageTk.PhotoImage(im.resize((250*4,175*4), Image.ANTIALIAS))
-                image_on_canvas = canvas.create_image(20,20, anchor=NW, image=first_image)
-                upper_left = tk.Label(root, image=first_image)
-                upper_left.place(x=20, y=20)
-                break
+    #         if i == 0:
+    #             first_image = ImageTk.PhotoImage(im.resize((250*4,175*4), Image.ANTIALIAS))
+    #             image_on_canvas = canvas.create_image(20,20, anchor=NW, image=first_image)
+    #             upper_left = tk.Label(root, image=first_image)
+    #             upper_left.place(x=20, y=20)
+    #             break
 
 
-        else:
-            print("Cannot connect to camera")
-            messagebox.showerror("Error", "Camera " + str(i) + " is not reachable via RTSP")
+    #     else:
+    #         print("Cannot connect to camera")
+    #         messagebox.showerror("Error", "Camera " + str(i) + " is not reachable via RTSP")
 
     # for i in range(len(ips)):
     #     print(i)

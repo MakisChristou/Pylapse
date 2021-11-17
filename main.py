@@ -54,6 +54,9 @@ rendering_process = None
 # start_date_cal = DateEntry()
 # end_date_cal = DateEntry()
 
+# Declare as global variable
+log_file = None
+
 
 # Loads first image on canvas (by default loads first image for today)
 def loadFirstImage():
@@ -62,8 +65,8 @@ def loadFirstImage():
     global end_date_cal
     global label
 
-    print(start_date_cal)
-    print(end_date_cal)
+    print(str(datetime.datetime.now()), start_date_cal)
+    print(str(datetime.datetime.now()), end_date_cal)
 
 
     return 
@@ -82,16 +85,16 @@ def writeTimelapseSettings():
     camera_passwords = re.sub(r"\s+", "", camera_passwords, flags=re.UNICODE)
     camera_interval = re.sub(r"\s+", "", camera_interval, flags=re.UNICODE)
 
-    print("loadTimelapseSettings()")
-    print(camera_ips)
-    print(camera_usernames)
-    print(camera_passwords)
-    print(camera_interval)
+    print(str(datetime.datetime.now()), "loadTimelapseSettings()")
+    print(str(datetime.datetime.now()), camera_ips)
+    print(str(datetime.datetime.now()), camera_usernames)
+    print(str(datetime.datetime.now()), camera_passwords)
+    print(str(datetime.datetime.now()), camera_interval)
 
 
     # Check if empty variables
     if not camera_interval or not camera_usernames or not camera_passwords:
-        print("Some variables are empty")
+        print(str(datetime.datetime.now()), "Some variables are empty")
         messagebox.showerror("Error", "Wrong timelapse_settings.txt format")
         return
 
@@ -99,7 +102,7 @@ def writeTimelapseSettings():
     try:
         int(camera_interval)
     except Exception as e:
-        print("Invalid Interval")
+        print(str(datetime.datetime.now()), "Invalid Interval")
         messagebox.showerror("Error", "Interval must be an integer")
         return
 
@@ -110,7 +113,7 @@ def writeTimelapseSettings():
 
     # Check that ips, usernames and passwords have the same commas
     if a != b or a != c or c != b:
-        print("Wrong timelapse_settings.txt format")
+        print(str(datetime.datetime.now()), "Wrong timelapse_settings.txt format")
         messagebox.showerror("Error", "Wrong timelapse_settings.txt format")
         return
 
@@ -141,15 +144,15 @@ def loadTimelapseSettings():
     camera_passwords = re.sub(r"\s+", "", camera_passwords, flags=re.UNICODE)
     camera_interval = re.sub(r"\s+", "", camera_interval, flags=re.UNICODE)
 
-    print("loadTimelapseSettings()")
-    print(camera_ips)
-    print(camera_usernames)
-    print(camera_passwords)
-    print(camera_interval)
+    print(str(datetime.datetime.now()), "loadTimelapseSettings()")
+    print(str(datetime.datetime.now()), camera_ips)
+    print(str(datetime.datetime.now()), camera_usernames)
+    print(str(datetime.datetime.now()), camera_passwords)
+    print(str(datetime.datetime.now()), camera_interval)
 
     # Check if empty variables
     if not camera_interval or not camera_usernames or not camera_passwords:
-        print("Some variables are empty")
+        print(str(datetime.datetime.now()), "Some variables are empty")
         messagebox.showerror("Error", "Wrong timelapse_settings.txt format")
         return
 
@@ -157,7 +160,7 @@ def loadTimelapseSettings():
     try:
         int(camera_interval)
     except Exception as e:
-        print("Invalid Interval")
+        print(str(datetime.datetime.now()), "Invalid Interval")
         messagebox.showerror("Error", "Interval must be an integer")
         return
 
@@ -168,7 +171,7 @@ def loadTimelapseSettings():
 
     # Check that ips, usernames and passwords have the same commas
     if a != b or a != c or c != b:
-        print("Wrong timelapse_settings.txt format")
+        print(str(datetime.datetime.now()), "Wrong timelapse_settings.txt format")
         messagebox.showerror("Error", "Wrong timelapse_settings.txt format")
         return
 
@@ -183,7 +186,7 @@ def loadTimelapseSettings():
     temp = ""
     for char in camera_ips:
         if char == ",":
-            print("Yes")
+            print(str(datetime.datetime.now()), "Yes")
         if char == ',':
             ips.append(temp)
             temp = ""
@@ -244,23 +247,21 @@ def readTimelapseSettings():
 
         # Check if variables are empty
         if len(lines) != 4:
-            print("At least one variable is empty")
             messagebox.showerror("Error", "Wrong timelapse_settings.txt format")
-            return
+            return 1
 
 
         # List data structures are filled 
         loadTimelapseSettings()
 
     else:
-        print("timelapse_settings.txt file does not exist")
         messagebox.showerror("Error", "timelapse_settings.txt file does not exist")
-        return
+        return 1
 
-    print(ips)
-    print(usernames)
-    print(passwords)
-    return 
+    print(str(datetime.datetime.now()), ips)
+    print(str(datetime.datetime.now()), usernames)
+    print(str(datetime.datetime.now()), passwords)
+    return 0
 
 # Test if all of the cameras are reachable via RTSP (returns 1 if fail and 0 if success)
 def testRTSPCameras():
@@ -271,12 +272,12 @@ def testRTSPCameras():
         cap = cv2.VideoCapture('rtsp://'+usernames[i]+':'+passwords[i]+'@'+ips[i]+':554//h264Preview_01_main')
         ret, img = cap.read()
         if ret == True:
-            print("RTSP Stream " + str(i) + " Succesful")
+            print(str(datetime.datetime.now()), "RTSP Stream " + str(i) + " Succesful")
             # messagebox.showinfo("Success", "Camera is reachable via RTSP")
             # im = Image.fromarray(img)
             # im.save("camera1.jpeg")
         else:
-            print("Cannot connect to camera")
+            print(str(datetime.datetime.now()), "Cannot connect to camera")
             messagebox.showerror("Error", "Camera " + str(i) + " is not reachable via RTSP")
             return 1
 
@@ -309,11 +310,11 @@ def timelapseSettings():
         camera_interval = re.sub(r"\s+", "", camera_interval, flags=re.UNICODE)
 
 
-        print("SaveTimelapseSettings()")
-        print(camera_ips)
-        print(camera_usernames)
-        print(camera_passwords)
-        print(camera_interval)
+        print(str(datetime.datetime.now()), "SaveTimelapseSettings()")
+        print(str(datetime.datetime.now()), camera_ips)
+        print(str(datetime.datetime.now()), camera_usernames)
+        print(str(datetime.datetime.now()), camera_passwords)
+        print(str(datetime.datetime.now()), camera_interval)
 
 
         # List data structures are filled 
@@ -335,12 +336,12 @@ def timelapseSettings():
             timelapse_settings_file.write(camera_usernames+"\n")
             timelapse_settings_file.write(camera_passwords+"\n")
             timelapse_settings_file.close()
-            print("Saving ")
-            print(camera_interval)
-            print(camera_ips)
-            print(camera_usernames)
-            print(camera_passwords)
-            print("Saved timelapse settings")
+            print(str(datetime.datetime.now()), "Saving ")
+            print(str(datetime.datetime.now()), camera_interval)
+            print(str(datetime.datetime.now()), camera_ips)
+            print(str(datetime.datetime.now()), camera_usernames)
+            print(str(datetime.datetime.now()), camera_passwords)
+            print(str(datetime.datetime.now()), "Saved timelapse settings")
             messagebox.showinfo("Success", "Saved timelapse settings")
         return
     
@@ -389,8 +390,8 @@ def checkRender(picture_count):
             
             ffmpeg_frames_rendered=line.rstrip()[6::]
 
-            print(ffmpeg_frames_rendered)
-            print(picture_count)
+            print(str(datetime.datetime.now()), ffmpeg_frames_rendered)
+            print(str(datetime.datetime.now()), picture_count)
 
             if ffmpeg_frames_rendered == str(picture_count):
                 messagebox.showinfo("Success", "Video has been successfully rendered")
@@ -447,10 +448,10 @@ def chooseDuration(picture_count):
 
     keep_one_every = durations.index(int(user_choice))+1
 
-    print("User choice is ", user_choice)
-    print("Keeping one every ", keep_one_every, " pictures")
-    print("Durations are ", durations)
-    print("Timelapse will be composed of ", picture_count, " pictures")
+    print(str(datetime.datetime.now()), "User choice is ", user_choice)
+    print(str(datetime.datetime.now()), "Keeping one every ", keep_one_every, " pictures")
+    print(str(datetime.datetime.now()), "Durations are ", durations)
+    print(str(datetime.datetime.now()), "Timelapse will be composed of ", picture_count, " pictures")
 
 
     # Remove files from temporary directory to match user desired duration
@@ -467,7 +468,7 @@ def chooseDuration(picture_count):
         counter+=1
 
 
-    print("Timelapse will be composed of ", picture_count, " pictures")
+    print(str(datetime.datetime.now()), "Timelapse will be composed of ", picture_count, " pictures")
 
     return picture_count
 
@@ -479,15 +480,18 @@ def renderVideo():
 
     # Stop if rendering script is running already for some reason (So we don't expode the server)
     if result.stdout:
-        print("render.sh script is already running, exiting")
+        print(str(datetime.datetime.now()), "render.sh script is already running, exiting")
         messagebox.showerror("Error", "render.sh script is already running")
         return
     else:
-        print("render.sh script not running, continuing")
+        print(str(datetime.datetime.now()), "render.sh script not running, continuing")
 
 
-    # print(type(start_date_cal.get_date()))
-    # print(str(start_date_cal.get_date().year))
+    # Check if we have the target folder to render to
+    checkDirectories()
+
+    # print(str(datetime.datetime.now()), type(start_date_cal.get_date()))
+    # print(str(datetime.datetime.now()), str(start_date_cal.get_date().year))
 
     # Check if dates were given correctly
     if start_date_cal.get_date() > end_date_cal.get_date():
@@ -504,7 +508,7 @@ def renderVideo():
 
     # Check if variables are empty (Not gonna happen but I had this coded up so ohh well)
     if not start_date or not end_date or not framerate:
-        print("At least one variable is empty")
+        print(str(datetime.datetime.now()), "At least one variable is empty")
         messagebox.showerror("Error", "At least one variable is empty")
         return
 
@@ -513,7 +517,7 @@ def renderVideo():
         start_date_object = datetime.datetime.strptime(start_date,"%d/%m/%Y")
         end_date_object = datetime.datetime.strptime(end_date+" 23:59:59","%d/%m/%Y %H:%M:%S")
     except Exception as e:
-        print("Wrong date format")
+        print(str(datetime.datetime.now()), "Wrong date format")
         messagebox.showerror("Error", "Wrong date format")
         return
 
@@ -521,12 +525,12 @@ def renderVideo():
     try:
         int(framerate)
     except Exception as e:
-        print("Wrong framerate")
+        print(str(datetime.datetime.now()), "Wrong framerate")
         messagebox.showerror("Error", "Wrong framerate")
         return
 
 
-    print("Camera Selection: " + camera_selection.get())
+    print(str(datetime.datetime.now()), "Camera Selection: " + camera_selection.get())
 
     # If this is null, quit
     if camera_selection:
@@ -551,7 +555,7 @@ def renderVideo():
 
         # Check if camera directory exists
         if not os.path.exists(camera_directory):
-            print(camera_directory + " does not exist")
+            print(str(datetime.datetime.now()), camera_directory + " does not exist")
             messagebox.showerror("Error", camera_directory + " does not exist")
             return
 
@@ -559,15 +563,15 @@ def renderVideo():
         pictures = os.listdir(path='Output/Pictures/Camera'+camera_selection.get())
 
 
-        # print(pictures)
+        # print(str(datetime.datetime.now()), pictures)
         # Why do I have to do this? (bug)
         # pictures.remove(".jpeg")
 
-        print("Copying files to temp dir")
+        print(str(datetime.datetime.now()), "Copying files to temp dir")
 
         # Copy everyting to temp dir
         for file in pictures:
-            # print(file)
+            # print(str(datetime.datetime.now()), file)
             unix_epoch = file[0:10]
             temp_date_object = datetime.datetime.fromtimestamp(int(unix_epoch))
             if temp_date_object > start_date_object and temp_date_object < end_date_object:
@@ -581,12 +585,12 @@ def renderVideo():
 
         # Render if we have pictures
         if picture_count >= 1:
-            print("Rendering using ffmpeg")
+            print(str(datetime.datetime.now()), "Rendering using ffmpeg")
 
             global renderingThread
 
             if renderingThread.is_alive():
-                print("Rendering thread alive, won't start a new one")
+                print(str(datetime.datetime.now()), "Rendering thread alive, won't start a new one")
             else:   
                 # Start Rendering in the background
                 renderingThread = threading.Thread(target=runRenderingScript)
@@ -597,11 +601,11 @@ def renderVideo():
             progressBar(picture_count)
 
         elif picture_count == -1:
-            print("Aborting Render")
+            print(str(datetime.datetime.now()), "Aborting Render")
             messagebox.showerror("Error", "Aborting Render")
             return
         else:
-            print("Not enough pictures for playback")
+            print(str(datetime.datetime.now()), "Not enough pictures for playback")
             messagebox.showerror("Error", "Not enough pictures for rendering")
             return
 
@@ -614,7 +618,7 @@ def renderVideo():
         checkRender(picture_count)
 
     else:
-        print("No Camera Selected")
+        print(str(datetime.datetime.now()), "No Camera Selected")
         messagebox.showerror("Error", "No camera selected for rendering")
         return
 
@@ -630,13 +634,13 @@ def runTimelapseScript():
     while True:
         # Check if we should still run
         if not getattr(t, "do_run", True):
-            print("Stopped by stopTimelapse()")
+            print(str(datetime.datetime.now()), "Stopped by stopTimelapse()")
             break
         # Take a picture and save it in Output/Pictures
         result = subprocess.run(["./timelapse.sh"], shell=False)
 
         if result.returncode == 1:
-            print("An error has occured in timelapse.sh")
+            print(str(datetime.datetime.now()), "An error has occured in timelapse.sh")
             messagebox.showerror("Error", "An error has occured in timelapse.sh")
             return
 
@@ -662,7 +666,7 @@ def startTimelapse():
     # timelapse_settings.txt is written here
     writeTimelapseSettings()
 
-    print(cameras)
+    print(str(datetime.datetime.now()), cameras)
 
 
     # Create any missing folder structures
@@ -679,17 +683,17 @@ def startTimelapse():
     # So we don't expode the server
     # Stop if rendering script is running already for some reason
     if result.stdout:
-        print("timelapse.sh script is already running, exiting")
+        print(str(datetime.datetime.now()), "timelapse.sh script is already running, exiting")
         messagebox.showerror("Error", "timelapse.sh script is already running")
         return
     else:
-        print("timelapse.sh script not running, continuing")
+        print(str(datetime.datetime.now()), "timelapse.sh script not running, continuing")
 
 
     global timelapseThread
 
     if timelapseThread.is_alive():
-        print("Timelapse thread alive, won't start a new one")
+        print(str(datetime.datetime.now()), "Timelapse thread alive, won't start a new one")
         messagebox.showerror("Error", "timelapse.sh script is already running")
         return
     else:   
@@ -708,7 +712,7 @@ def startTimelapse():
 # Stops the timelapse process
 def stopTimelapse():
     if timelapseThread.is_alive():
-        print("Timelapse Thread is running")
+        print(str(datetime.datetime.now()), "Timelapse Thread is running")
         # Signal playback thread to stop
         timelapseThread.do_run = False
         root.title("Timelapse not running")
@@ -731,7 +735,7 @@ def timelapsePlayback():
     t = threading.current_thread()
 
     if not camera_selection.get():
-        print("No camera selected")
+        print(str(datetime.datetime.now()), "No camera selected")
         messagebox.showerror("Error", "No camera selected")
         return
 
@@ -770,14 +774,14 @@ def timelapsePlayback():
         start_date_object = datetime.datetime.strptime(start_date,"%d/%m/%Y")
         end_date_object = datetime.datetime.strptime(end_date+" 23:59:59","%d/%m/%Y %H:%M:%S")
     except Exception as e:
-        print("Wrong date format")
+        print(str(datetime.datetime.now()), "Wrong date format")
         messagebox.showerror("Error", "Wrong date format")
         return
 
      
-    print("timelapsePlayback()")
-    print(start_date_object)
-    print(end_date_object)
+    print(str(datetime.datetime.now()), "timelapsePlayback()")
+    print(str(datetime.datetime.now()), start_date_object)
+    print(str(datetime.datetime.now()), end_date_object)
 
     playback_flag = 0
 
@@ -789,7 +793,7 @@ def timelapsePlayback():
         if file[-5:] != ".jpeg":
             continue
 
-        print(file)
+        print(str(datetime.datetime.now()), file)
 
         unix_epoch = file[0:10]
         temp_date_object = datetime.datetime.fromtimestamp(int(unix_epoch))
@@ -807,7 +811,7 @@ def timelapsePlayback():
             break
 
         if not getattr(t, "do_pause", True):
-            print("Stopped at picture with index ", current_playback_image)
+            print(str(datetime.datetime.now()), "Stopped at picture with index ", current_playback_image)
             break
 
         
@@ -831,13 +835,13 @@ def timelapsePlayback():
 
 # Starts timelapse playback thread in the background
 def startPlayback():
-    print("Start Date: ", start_date_cal.get_date())
-    print("End Date: ", end_date_cal.get_date())
+    print(str(datetime.datetime.now()), "Start Date: ", start_date_cal.get_date())
+    print(str(datetime.datetime.now()), "End Date: ", end_date_cal.get_date())
 
     global playbackThread
 
     if playbackThread.is_alive():
-        print("Playback Thread is running")
+        print(str(datetime.datetime.now()), "Playback Thread is running")
     else:
         # Start Rendering in the background
         playbackThread = threading.Thread(target=timelapsePlayback)
@@ -850,7 +854,7 @@ def startPlayback():
 def stopPlayback():
 
     if playbackThread.is_alive():
-        print("Playback Thread is running")
+        print(str(datetime.datetime.now()), "Playback Thread is running")
         # Signal playback thread to stop
         playbackThread.do_run = False
     
@@ -860,7 +864,7 @@ def stopPlayback():
 def pausePlayback():
 
     if playbackThread.is_alive():
-        print("Playback Thread is running")
+        print(str(datetime.datetime.now()), "Playback Thread is running")
         # Signal playback thread to pause
         playbackThread.do_pause =False
 
@@ -869,7 +873,7 @@ def pausePlayback():
 # Date Choosing
 def example1():
     def print_sel():
-        print(cal.selection_get())
+        print(str(datetime.datetime.now()), cal.selection_get())
         top.destroy()
 
     top = tk.Toplevel(root)
@@ -914,7 +918,7 @@ def progressBar(picture_count):
         # While render.sh script is running check the progress %
         while result.stdout:
             
-            print("render.sh is running!")
+            print(str(datetime.datetime.now()), "render.sh is running!")
 
             # Read ffmpeg output and deduce whether succeess or not
 
@@ -926,7 +930,7 @@ def progressBar(picture_count):
 
                     progress = int(ffmpeg_frames_rendered)/picture_count*100
 
-                    print("ProgressBar progress: ", progress)
+                    print(str(datetime.datetime.now()), "ProgressBar progress: ", progress)
 
                     textProgress.set(str(int(progress))+"% Done")
 
@@ -940,7 +944,7 @@ def progressBar(picture_count):
                     
                     ffmpeg_fps=line.rstrip()[4::]
 
-                    print(ffmpeg_fps)
+                    print(str(datetime.datetime.now()), ffmpeg_fps)
 
                     # ffmpeg_fps -----> 1 second
                     # picture count ===> x seconds
@@ -950,7 +954,7 @@ def progressBar(picture_count):
                     else:
                         eta = 0.0
                     
-                    print("ProgressBar ETA: ", eta)
+                    print(str(datetime.datetime.now()), "ProgressBar ETA: ", eta)
                     # textProgress.set(str(int(progress))+"%")
                     textETA.set("ETA: "+str(int(eta))+" seconds")   
                     break
@@ -986,7 +990,7 @@ def runRenderingScript():
 
     rendering_process = subprocess.run(["./render.sh"], shell=False)
     if rendering_process.returncode == 1:
-        print("An error has occured in render.sh")
+        print(str(datetime.datetime.now()), "An error has occured in render.sh")
         messagebox.showerror("Error", "An error has occured in render.sh")
 
 # Check if directories exist and consruct them
@@ -996,7 +1000,7 @@ def createDirectories():
 
     # Check if Output directory exists
     if not os.path.exists("Output"):
-        print("No output directory")
+        print(str(datetime.datetime.now()), "No output directory")
         os.mkdir("Output")
 
 
@@ -1004,16 +1008,16 @@ def createDirectories():
 
     # Check if Picture directory exists
     if not os.path.exists("Output/Pictures"):
-        print("No Pictures directory")
+        print(str(datetime.datetime.now()), "No Pictures directory")
         os.mkdir("Output/Pictures")
 
     # Check if Video directory exists
     if not os.path.exists("Output/Videos"):
-        print("No Videos directory")
+        print(str(datetime.datetime.now()), "No Videos directory")
         os.mkdir("Output/Videos")
 
 
-    print("There exist ", len(cameras), " cameras")
+    print(str(datetime.datetime.now()), "There exist ", len(cameras), " cameras")
 
     # Check if Camera directories exist
     if camera_selection:
@@ -1021,10 +1025,10 @@ def createDirectories():
         for i in range(len(cameras)):
             camera_folder = os.path.exists("Output/Pictures/Camera"+str(i))
 
-            # print("Output/Pictures/Camera"+str(i), " ", camera_folder)
+            # print(str(datetime.datetime.now()), "Output/Pictures/Camera"+str(i), " ", camera_folder)
 
             if not camera_folder:
-                print("No camera " + str(i) + " directory")
+                print(str(datetime.datetime.now()), "No camera " + str(i) + " directory")
                 os.mkdir("Output/Pictures/Camera"+str(i))
 
 
@@ -1041,18 +1045,18 @@ def checkDirectories():
 
     # Check if Output directory exists
     if not os.path.exists("Output"):
-        messagebox.showerror("Error", "No output directory")
+        messagebox.showerror("Error", "No output directory, restart program")
         return 1
 
 
     # Check if Picture directory exists
     if not os.path.exists("Output/Pictures"):
-        messagebox.showerror("Error", "No Pictures directory")
+        messagebox.showerror("Error", "No Pictures directory, restart program")
         return 1
 
     # Check if Video directory exists
     if not os.path.exists("Output/Videos"):
-        messagebox.showerror("Error", "No Videos directory")
+        messagebox.showerror("Error", "No Videos directory, restart program")
         return 1
 
 
@@ -1062,21 +1066,99 @@ def checkDirectories():
         for i in range(len(cameras)):
             camera_folder = os.path.exists("Output/Pictures/Camera"+str(i))
 
-            # print("Output/Pictures/Camera"+str(i), " ", camera_folder)
+            # print(str(datetime.datetime.now()), str(datetime.datetime.now()), "Output/Pictures/Camera"+str(i), " ", camera_folder)
 
             if not camera_folder:
-                messagebox.showerror("Error", "No camera " + str(i) + " directory")
+                messagebox.showerror("Error", "No camera " + str(i) + " directory, restart program")
                 return 1
     
     return 0
 
 
+def checkFiles():
+
+    return
+
+
+def writeRenderScript():
+
+    script = r"""#!/bin/bash
+LOG_FILE="output.txt"
+FILENAME="out"
+RENDER_SETTINGS_FILE="render_settings.txt"
+START_DATE=$(sed '1q;d' $RENDER_SETTINGS_FILE)
+END_DATE=$(sed '2q;d' $RENDER_SETTINGS_FILE)
+FRAMERATE=$(sed '3q;d' $RENDER_SETTINGS_FILE)
+CAMERA=$(sed '4q;d' $RENDER_SETTINGS_FILE)
+FILENAME="camera"$CAMERA--$START_DATE--$END_DATE
+ffmpeg -y -progress output.txt -framerate $FRAMERATE -pattern_type glob -i "temp/*.jpeg" -c:v libx264 -r $FRAMERATE -pix_fmt yuv420p "Output/Videos"/$FILENAME.mp4 #1> $LOG_FILE 2>&1"""
+
+
+    render_script = open("render.sh", "w")
+    render_script.write(script)
+    render_script.close()
+
+    os.chmod("render.sh",0o777)
+
+    return
+
+
+def writeTimelapseScript():
+
+
+    script=r"""#!/bin/bash
+DIRECTORY="Output/Pictures"
+TIMELAPSE_SETTINGS_FILE="timelapse_settings.txt"
+IP=$(sed '2q;d' $TIMELAPSE_SETTINGS_FILE)
+USERNAME=$(sed '3q;d' $TIMELAPSE_SETTINGS_FILE)
+PASSWORD=$(sed '4q;d' $TIMELAPSE_SETTINGS_FILE)
+TODAY=`date +%s`
+IFS=',' read -ra IPS <<< "$IP"
+IFS=',' read -ra USERNAMES <<< "$USERNAME"
+IFS=',' read -ra PASSWORDS <<< "$PASSWORD"
+SIZE=${#IPS[@]}
+for ((i = 0 ; i < $SIZE ; i++)); do
+    #echo "Counter: $i"
+    SAVE_DIRECTORY="Output/Pictures/Camera"$i
+    #echo $SAVE_DIRECTORY
+    ffmpeg -ss 2 -rtsp_transport tcp -i rtsp://${USERNAMES[i]}:${PASSWORDS[i]}@${IPS[i]}//h264Preview_01_main -y -f image2 -qscale 0 -frames 1  $SAVE_DIRECTORY/$TODAY.jpeg
+done
+#exit
+#ffmpeg -ss 2 -rtsp_transport tcp -i rtsp://$USERNAME:$PASSWORD@$IP//h264Preview_01_main -y -f image2 -qscale 0 -frames 1  $DIRECTORY/$TODAY.jpeg"""
+
+    timelapse_script = open("timelapse.sh", "w")
+    timelapse_script.write(script)
+    timelapse_script.close()
+
+    os.chmod("timelapse.sh",0o777)
+
+
+    return
+
+# Collects various program stats for user feedback
+def getStats():
+    return
+
+
 # Actual main function
 if __name__ == "__main__":
 
+    log_file = open("debug.log", "a")
+    # log_file.write(str(datetime.datetime.now()) + " " + "main()" +"\n")
+
+
+    # Write sripts to disk since we will use them later
+    writeRenderScript()
+    writeTimelapseScript()
+
     # Load settings in internal data structures
-    readTimelapseSettings()
-    loadTimelapseSettings()
+    quit = readTimelapseSettings()
+
+    # # Quit if we can't read config files
+    if quit == 1:
+        # sys.exit()
+        messagebox.showerror("Error", "Please configure the program via the menu")
+
 
 
     # Create canvas
@@ -1092,22 +1174,27 @@ if __name__ == "__main__":
 
 
     stopPlayback = tk.Button(root,text= "Stop Playback", padx=12, pady=5, command=stopPlayback)
-    stopPlayback.place(x=200, y=760)
+    stopPlayback.place(x=20, y=760)
     # stopTimelapse.pack()
 
     startPlayback = tk.Button(root,text= "Start Playback", padx=12, pady=5, command=startPlayback)
-    startPlayback.place(x=400, y=760)
+    startPlayback.place(x=220, y=760)
     # playTimelapse.pack()
 
 
     renderVideo = tk.Button(root,text="Render Video", padx=12, pady=5, command=renderVideo)
-    renderVideo.place(x=600, y=760)
+    renderVideo.place(x=420, y=760)
     # renderVideo.pack()
 
     # Labels for clarity
-    tk.Label(root, text="Start Date").place(x=400, y=820)
-    tk.Label(root, text="End Date").place(x=600, y=820)
-    tk.Label(root, text="Select Camera").place(x=200, y=820)
+    tk.Label(root, text="Select Camera").place(x=20, y=820)
+    tk.Label(root, text="Start Date").place(x=220, y=820)
+    tk.Label(root, text="End Date").place(x=420, y=820)
+    tk.Label(root, text="Saved Pictures").place(x=620, y=760)
+    tk.Label(root, text="Saved Videos").place(x=820, y=760)
+    tk.Label(root, text="Pictures Size (GB)").place(x=620, y=820)
+    tk.Label(root, text="Videos Size (GB)").place(x=820, y=820)
+
 
     # Picking Dates
     # Get current date
@@ -1115,11 +1202,11 @@ if __name__ == "__main__":
 
     start_date_cal = DateEntry(root, width=12, year=now.year, month=now.month, day=now.day, 
     background='darkblue', foreground='white', borderwidth=2)
-    start_date_cal.place(x=400, y=850)
+    start_date_cal.place(x=220, y=850)
 
     end_date_cal = DateEntry(root, width=12, year=now.year, month=now.month, day=now.day, 
     background='darkblue', foreground='white', borderwidth=2)
-    end_date_cal.place(x=600, y=850)
+    end_date_cal.place(x=420, y=850)
 
     p2 = Progressbar(root, length=1000, cursor='spider', mode="determinate", orient=tk.HORIZONTAL)
     p2.place(x=20, y=730)
@@ -1132,7 +1219,7 @@ if __name__ == "__main__":
         camera_selection.set(cameras[0])
         camera_option = tk.OptionMenu(root, camera_selection, *cameras)
         camera_option.config(width=5, font=('Helvetica', 12))
-        camera_option.place(x=200, y = 850)
+        camera_option.place(x=20, y = 850)
 
     
     # Construct nessasary folder structures
@@ -1208,7 +1295,7 @@ if __name__ == "__main__":
         valid_dates = True
 
     except Exception as e:
-        print("Wrong date format")
+        print(str(datetime.datetime.now()), str(datetime.datetime.now()), "Wrong date format")
         messagebox.showerror("Error", "Wrong date format")
         
 
@@ -1220,7 +1307,7 @@ if __name__ == "__main__":
     #     cap = cv2.VideoCapture('rtsp://'+usernames[i]+':'+passwords[i]+'@'+ips[i]+':554//h264Preview_01_main')
     #     ret, img = cap.read()
     #     if ret == True:
-    #         print("RTSP Stream " + str(i) + " Succesful")
+    #         print(str(datetime.datetime.now()), "RTSP Stream " + str(i) + " Succesful")
     #         # messagebox.showinfo("Success", "Camera is reachable via RTSP")
     #         im = Image.fromarray(img)
     #         # im.save("camera0.jpeg")
@@ -1234,11 +1321,11 @@ if __name__ == "__main__":
 
 
     #     else:
-    #         print("Cannot connect to camera")
+    #         print(str(datetime.datetime.now()), "Cannot connect to camera")
     #         messagebox.showerror("Error", "Camera " + str(i) + " is not reachable via RTSP")
 
     # for i in range(len(ips)):
-    #     print(i)
+    #     print(str(datetime.datetime.now()), i)
     
     # # If we have pictures to show and user given dates are valid load first picture
     # if pictures and valid_dates:
@@ -1270,3 +1357,6 @@ if __name__ == "__main__":
 
     # Run GUI
     root.mainloop()
+
+
+    log_file.close()

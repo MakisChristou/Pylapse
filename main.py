@@ -48,6 +48,9 @@ camera_interval = "" # Filled either in readTimelapseSettings() or saveTimelapse
 
 current_playback_image = 0
 
+# Create empty process for global use
+rendering_process = None
+
 # start_date_cal = DateEntry()
 # end_date_cal = DateEntry()
 
@@ -319,7 +322,7 @@ def timelapseSettings():
         # Check data validity
         quit = testRTSPCameras()
 
-
+        # Quit if RTSP is not reachable
         if quit == 1:
             return
         else:
@@ -429,6 +432,7 @@ def chooseDuration(picture_count):
     variable.set(durations[0]) # default value
 
     w = OptionMenu(popup, variable, *durations)
+    w.config(width=12)
     w.pack()
 
     button = Button(popup, text="OK", command=ok)
@@ -661,20 +665,12 @@ def startTimelapse():
     print(cameras)
 
 
-    # Test of camera folders exist, if not create them
-    if camera_selection:
+    # Create any missing folder structures
+    quit = checkDirectories()
 
-        for i in range(len(cameras)):
-            camera_folder = os.path.exists("Output/Pictures/Camera"+str(i))
-
-            # print("Output/Pictures/Camera"+str(i), " ", camera_folder)
-
-            if not camera_folder:
-                os.mkdir("Output/Pictures/Camera"+str(i))
-
-
-
-
+    # Quit if folder structure has been modified since starting the program
+    if quit == 1:
+        return
 
 
     command = ['pgrep', 'timelapse.sh']
@@ -738,6 +734,14 @@ def timelapsePlayback():
         print("No camera selected")
         messagebox.showerror("Error", "No camera selected")
         return
+
+    quit = checkDirectories()
+
+    # Quit if folder structure has been modified since starting the program
+    if quit == 1:
+        return
+
+
 
     camera_directory = 'Output/Pictures/Camera' + camera_selection.get()
     
@@ -890,6 +894,13 @@ def example2():
 def donothing():
     return
 
+# Kills rendering thread
+def abortRender():
+
+    global rendering_process
+    rendering_process.kill()
+    return
+
 # Video rendering progress bar
 def progressBar(picture_count):
 
@@ -961,6 +972,7 @@ def progressBar(picture_count):
     tk.Label(popup, text="Video is being rendered").grid(row=0,column=0)
     tk.Label(popup, textvariable=textProgress).grid(row=4,column=0)
     tk.Label(popup, textvariable=textETA).grid(row=5,column=0)
+    tk.Button(popup,text= "Abort", command=abortRender).grid(row=6,column=0)
 
     p1 = Progressbar(popup, length=200, cursor='spider', mode="determinate", orient=tk.HORIZONTAL)
     p1.grid(row=2,column=0)
@@ -971,11 +983,93 @@ def progressBar(picture_count):
 
 # Separate function so we can run it on its own thread
 def runRenderingScript():
-    process = subprocess.run(["./render.sh"], shell=False)
-    if process.returncode == 1:
+
+    rendering_process = subprocess.run(["./render.sh"], shell=False)
+    if rendering_process.returncode == 1:
         print("An error has occured in render.sh")
-        messagebox.showerror("Error", "n error has occured in render.sh")
-        
+        messagebox.showerror("Error", "An error has occured in render.sh")
+
+# Check if directories exist and consruct them
+def createDirectories():
+
+    global camera_selection
+
+    # Check if Output directory exists
+    if not os.path.exists("Output"):
+        print("No output directory")
+        os.mkdir("Output")
+
+
+    
+
+    # Check if Picture directory exists
+    if not os.path.exists("Output/Pictures"):
+        print("No Pictures directory")
+        os.mkdir("Output/Pictures")
+
+    # Check if Video directory exists
+    if not os.path.exists("Output/Videos"):
+        print("No Videos directory")
+        os.mkdir("Output/Videos")
+
+
+    print("There exist ", len(cameras), " cameras")
+
+    # Check if Camera directories exist
+    if camera_selection:
+
+        for i in range(len(cameras)):
+            camera_folder = os.path.exists("Output/Pictures/Camera"+str(i))
+
+            # print("Output/Pictures/Camera"+str(i), " ", camera_folder)
+
+            if not camera_folder:
+                print("No camera " + str(i) + " directory")
+                os.mkdir("Output/Pictures/Camera"+str(i))
+
+
+
+
+    # Make sure temp dir is removed
+    if os.path.isdir("temp"):
+        shutil.rmtree("temp")
+
+# Checks if any missing directories exist and informs user
+def checkDirectories():
+
+    global camera_selection
+
+    # Check if Output directory exists
+    if not os.path.exists("Output"):
+        messagebox.showerror("Error", "No output directory")
+        return 1
+
+
+    # Check if Picture directory exists
+    if not os.path.exists("Output/Pictures"):
+        messagebox.showerror("Error", "No Pictures directory")
+        return 1
+
+    # Check if Video directory exists
+    if not os.path.exists("Output/Videos"):
+        messagebox.showerror("Error", "No Videos directory")
+        return 1
+
+
+    # Check if Camera directories exist
+    if camera_selection:
+
+        for i in range(len(cameras)):
+            camera_folder = os.path.exists("Output/Pictures/Camera"+str(i))
+
+            # print("Output/Pictures/Camera"+str(i), " ", camera_folder)
+
+            if not camera_folder:
+                messagebox.showerror("Error", "No camera " + str(i) + " directory")
+                return 1
+    
+    return 0
+
 
 # Actual main function
 if __name__ == "__main__":
@@ -983,6 +1077,7 @@ if __name__ == "__main__":
     # Load settings in internal data structures
     readTimelapseSettings()
     loadTimelapseSettings()
+
 
     # Create canvas
     canvas = tk.Canvas(root, height=900, width=1035)
@@ -1039,6 +1134,9 @@ if __name__ == "__main__":
         camera_option.config(width=5, font=('Helvetica', 12))
         camera_option.place(x=200, y = 850)
 
+    
+    # Construct nessasary folder structures
+    createDirectories()
 
 
     # Menu Items
@@ -1091,23 +1189,9 @@ if __name__ == "__main__":
     root.config(menu=menubar)
 
 
-    # Check if images exist
-    if not os.path.isdir("Output/Pictures"):
-        messagebox.showerror("Error", "No Output Directory")
-        os.mkdir("Output")
-        os.chdir("Output")
-        os.mkdir("Pictures")
-        os.chdir('..')
-
-    # Make sure temp dir is removed
-    if os.path.isdir("temp"):
-        shutil.rmtree("temp")
-
-
-
     # Load first image on canvas
-    pictures = os.listdir(path='Output/Pictures')
-    alphabetic_pictures = sorted(pictures)
+    # pictures = os.listdir(path='Output/Pictures')
+    # alphabetic_pictures = sorted(pictures)
 
 
     # Convert them to strings because of bad life choices

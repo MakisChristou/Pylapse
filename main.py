@@ -432,6 +432,7 @@ def chooseDuration(picture_count):
     # Popup window for duration options
     popup = tk.Toplevel()
     popup.title('Choose Duration')
+    popup.geometry("300x100")
     variable = StringVar(popup)
     variable.set(durations[0]) # default value
 
@@ -816,7 +817,7 @@ def timelapsePlayback():
 
     playback_flag = 0
     progress = 0
-    total_pictures_label.config(text=str(len(alphabetic_pictures)))
+
 
 
     playback_speed_counter = 0 # For playback speed
@@ -840,7 +841,6 @@ def timelapsePlayback():
         temp_date_object = datetime.datetime.fromtimestamp(int(unix_epoch))
         current_playback_image = alphabetic_pictures.index(file)
         progress = int(current_playback_image/(len(alphabetic_pictures))*100)
-        current_picture_label.config(text=str(current_playback_image))
 
         # Check if we should still run (quits if this is true)
         if not getattr(t, "do_run", True):
@@ -849,7 +849,6 @@ def timelapsePlayback():
             label.configure(image = temp_image)
             label.image = temp_image
             p2["value"] = 0
-            current_picture_label.config(text=str(0))
             root.update() 
             break
 
@@ -875,6 +874,8 @@ def timelapsePlayback():
     # If no pictures are played back tell user
     if playback_flag == 0:
         messagebox.showerror("Error", "No pictures captured for selected dates")
+        p2["value"] = 0
+        root.update() 
         return
 
 
@@ -887,7 +888,6 @@ def timelapsePlayback():
             label.configure(image = temp_image)
             label.image = temp_image
             p2["value"] = 0
-            current_picture_label.config(text=str(0))
             root.update() 
             break
 
@@ -1031,10 +1031,11 @@ def progressBar(picture_count):
 
     #start progress bar
     popup = tk.Toplevel()
+    popup.title("Rendering...")
     tk.Label(popup, text="Video is being rendered").grid(row=0,column=0)
     tk.Label(popup, textvariable=textProgress).grid(row=4,column=0)
     tk.Label(popup, textvariable=textETA).grid(row=5,column=0)
-    tk.Button(popup,text= "Abort", command=abortRender).grid(row=6,column=0)
+    # tk.Button(popup,text= "Abort", command=abortRender).grid(row=6,column=0)
 
     p1 = Progressbar(popup, length=200, cursor='spider', mode="determinate", orient=tk.HORIZONTAL)
     p1.grid(row=2,column=0)
@@ -1236,16 +1237,10 @@ if __name__ == "__main__":
     # renderVideo.pack()
 
     # Labels for clarity
-    tk.Label(root, text="Select Camera").place(x=20, y=820)
+    tk.Label(root, text="Camera").place(x=20, y=820)
     tk.Label(root, text="Start Date").place(x=820, y=800)
     tk.Label(root, text="End Date").place(x=820, y=850)
     tk.Label(root, text="Playbck Speed").place(x=220, y=820)
-
-
-    current_picture_label = tk.Label(root, text="N/A")
-    current_picture_label.place(x=20, y=730)
-    total_pictures_label = tk.Label(root, text= "N/A")
-    total_pictures_label.place(x=975, y=730)
 
     # Playback Speed
     playback_speed = StringVar(root)
@@ -1266,8 +1261,8 @@ if __name__ == "__main__":
     background='darkblue', foreground='white', borderwidth=2)
     end_date_cal.place(x=820, y=870)
 
-    p2 = Progressbar(root, length=905, cursor='spider', mode="determinate", orient=tk.HORIZONTAL)
-    p2.place(x=70, y=730)
+    p2 = Progressbar(root, length=1000, cursor='spider', mode="determinate", orient=tk.HORIZONTAL)
+    p2.place(x=20, y=730)
 
 
     camera_selection = tk.StringVar(root)

@@ -127,6 +127,17 @@ def writeTimelapseSettings():
         messagebox.showerror("Error", "Wrong timelapse_settings.txt format")
         return
 
+
+
+
+    # Encrypt passwords
+    try:
+        camera_passwords = trivial_encrypt(camera_passwords)
+    except Exception as e:
+        print(str(datetime.datetime.now()), "Cannot encrypt passwords")
+        messagebox.showerror("Error", "Cannot encrypt passwords")
+        return
+
     # Write to file (for timelapse.sh script)
     timelapse_settings_file = open("timelapse_settings.txt", "w")
     timelapse_settings_file.write(camera_interval+"\n")

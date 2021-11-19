@@ -137,6 +137,25 @@ def writeTimelapseSettings():
     timelapse_settings_file.write(camera_end_hour+"\n")
     timelapse_settings_file.close()
 
+# Base64 decode
+def trivial_decrypt(base64_message):
+    # base64_message = 'UHl0aG9uIGlzIGZ1bg=='
+    base64_bytes = base64_message.encode('ascii')
+    message_bytes = base64.b64decode(base64_bytes)
+    message = message_bytes.decode('ascii')
+    print(message)
+    return message
+
+# Base64 encode
+def trivial_encrypt(message):
+    # message = "imeenagourounakivromikopoli,admin,imeenagourounakivromikopoli"
+    message_bytes = message.encode('ascii')
+    base64_bytes = base64.b64encode(message_bytes)
+    base64_message = base64_bytes.decode('ascii')
+    print(base64_message)
+    return base64_message
+
+
 # loads lits data structures from string data structures
 def loadTimelapseSettings():
 
@@ -265,7 +284,17 @@ def readTimelapseSettings():
         camera_passwords = lines[3]
         camera_start_hour = lines[4]
         camera_end_hour = lines[5]
-    
+
+
+        # Decrypt Passwords
+        try:
+            camera_passwords = trivial_decrypt(camera_passwords)
+        except Exception as e:
+            print(str(datetime.datetime.now()), "Cannot decrypt passwords")
+            messagebox.showerror("Error", "Cannot decrypt passwords")
+            return 1
+        
+
 
         # Check if variables are empty
         if len(lines) != 6:
@@ -358,6 +387,14 @@ def timelapseSettings():
             return
         else:
             # Save file
+
+            try:
+                camera_passwords = trivial_encrypt(camera_passwords)
+            except Exception as e:
+                print(str(datetime.datetime.now()), "Cannot encrypt passwords")
+                messagebox.showerror("Error", "Cannot encrypt passwords")
+                return
+
 
             # Write to file (for timelapse.sh script)
             timelapse_settings_file = open("timelapse_settings.txt", "w")

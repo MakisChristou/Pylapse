@@ -1,6 +1,6 @@
 60
 192.168.10.11,192.168.10.149,192.168.10.10
 admin,admin,admin
-imeenagourounakivromikopoli,admin,imeenagourounakivromikopoli
+aW1lZW5hZ291cm91bmFraXZyb21pa29wb2xpLGFkbWluLGltZWVuYWdvdXJvdW5ha2l2cm9taWtvcG9saQ==
 7:00
 19:00

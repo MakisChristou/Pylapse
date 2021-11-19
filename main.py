@@ -47,6 +47,8 @@ camera_ips = "" # Filled either in readTimelapseSettings() or saveTimelapseSetti
 camera_usernames = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
 camera_passwords = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
 camera_interval = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
+camera_start_hour = ""
+camera_end_hour = ""
 
 current_playback_image = 0
 
@@ -80,18 +82,24 @@ def writeTimelapseSettings():
     global camera_usernames
     global camera_passwords
     global camera_interval
+    global camera_start_hour
+    global camera_end_hour
 
     # Remove whitespace from strings
     camera_ips = re.sub(r"\s+", "", camera_ips, flags=re.UNICODE)
     camera_usernames = re.sub(r"\s+", "", camera_usernames, flags=re.UNICODE)
     camera_passwords = re.sub(r"\s+", "", camera_passwords, flags=re.UNICODE)
     camera_interval = re.sub(r"\s+", "", camera_interval, flags=re.UNICODE)
+    camera_start_hour = re.sub(r"\s+", "", camera_start_hour, flags=re.UNICODE)
+    camera_end_hour = re.sub(r"\s+", "", camera_end_hour, flags=re.UNICODE)
 
     print(str(datetime.datetime.now()), "loadTimelapseSettings()")
     print(str(datetime.datetime.now()), camera_ips)
     print(str(datetime.datetime.now()), camera_usernames)
     print(str(datetime.datetime.now()), camera_passwords)
     print(str(datetime.datetime.now()), camera_interval)
+    print(str(datetime.datetime.now()), camera_start_hour)
+    print(str(datetime.datetime.now()), camera_end_hour)
 
 
     # Check if empty variables
@@ -125,6 +133,8 @@ def writeTimelapseSettings():
     timelapse_settings_file.write(camera_ips+"\n")
     timelapse_settings_file.write(camera_usernames+"\n")
     timelapse_settings_file.write(camera_passwords+"\n")
+    timelapse_settings_file.write(camera_start_hour+"\n")
+    timelapse_settings_file.write(camera_end_hour+"\n")
     timelapse_settings_file.close()
 
 # loads lits data structures from string data structures
@@ -134,6 +144,8 @@ def loadTimelapseSettings():
     global camera_usernames
     global camera_passwords
     global camera_interval
+    global camera_start_hour
+    global camera_end_hour
 
     global ips
     global usernames
@@ -145,12 +157,16 @@ def loadTimelapseSettings():
     camera_usernames = re.sub(r"\s+", "", camera_usernames, flags=re.UNICODE)
     camera_passwords = re.sub(r"\s+", "", camera_passwords, flags=re.UNICODE)
     camera_interval = re.sub(r"\s+", "", camera_interval, flags=re.UNICODE)
+    camera_start_hour = re.sub(r"\s+", "", camera_start_hour, flags=re.UNICODE)
+    camera_end_hour = re.sub(r"\s+", "", camera_end_hour, flags=re.UNICODE)    
 
     print(str(datetime.datetime.now()), "loadTimelapseSettings()")
     print(str(datetime.datetime.now()), camera_ips)
     print(str(datetime.datetime.now()), camera_usernames)
     print(str(datetime.datetime.now()), camera_passwords)
     print(str(datetime.datetime.now()), camera_interval)
+    print(str(datetime.datetime.now()), camera_start_hour)
+    print(str(datetime.datetime.now()), camera_end_hour)
 
     # Check if empty variables
     if not camera_interval or not camera_usernames or not camera_passwords:
@@ -236,6 +252,8 @@ def readTimelapseSettings():
     global camera_usernames
     global camera_passwords
     global camera_interval
+    global camera_start_hour
+    global camera_end_hour
 
 
     if file_exists:
@@ -245,10 +263,12 @@ def readTimelapseSettings():
         camera_ips = lines[1]
         camera_usernames = lines[2]
         camera_passwords = lines[3]
+        camera_start_hour = lines[4]
+        camera_end_hour = lines[5]
     
 
         # Check if variables are empty
-        if len(lines) != 4:
+        if len(lines) != 6:
             messagebox.showerror("Error", "Wrong timelapse_settings.txt format")
             return 1
 
@@ -296,6 +316,8 @@ def timelapseSettings():
         global camera_usernames
         global camera_passwords
         global camera_interval
+        global camera_start_hour
+        global camera_end_hour
 
 
         # Get data from text boxes
@@ -303,6 +325,8 @@ def timelapseSettings():
         camera_usernames = useranameInputText.get(1.0, "end-1c")
         camera_passwords = passwordInputText.get(1.0, "end-1c")
         camera_interval = intervalInputText.get(1.0, "end-1c")
+        camera_start_hour = startHourInputText.get(1.0, "end-1c")
+        camera_end_hour = endHourInputText.get(1.0, "end-1c")
 
 
         # Remove whitespace from strings
@@ -310,6 +334,8 @@ def timelapseSettings():
         camera_usernames = re.sub(r"\s+", "", camera_usernames, flags=re.UNICODE)
         camera_passwords = re.sub(r"\s+", "", camera_passwords, flags=re.UNICODE)
         camera_interval = re.sub(r"\s+", "", camera_interval, flags=re.UNICODE)
+        camera_start_hour = re.sub(r"\s+", "", camera_start_hour, flags=re.UNICODE)
+        camera_end_hour = re.sub(r"\s+", "", camera_end_hour, flags=re.UNICODE)
 
 
         print(str(datetime.datetime.now()), "SaveTimelapseSettings()")
@@ -317,6 +343,8 @@ def timelapseSettings():
         print(str(datetime.datetime.now()), camera_usernames)
         print(str(datetime.datetime.now()), camera_passwords)
         print(str(datetime.datetime.now()), camera_interval)
+        print(str(datetime.datetime.now()), camera_start_hour)
+        print(str(datetime.datetime.now()), camera_end_hour)
 
 
         # List data structures are filled 
@@ -337,12 +365,16 @@ def timelapseSettings():
             timelapse_settings_file.write(camera_ips+"\n")
             timelapse_settings_file.write(camera_usernames+"\n")
             timelapse_settings_file.write(camera_passwords+"\n")
+            timelapse_settings_file.write(camera_start_hour+"\n")
+            timelapse_settings_file.write(camera_end_hour+"\n")
             timelapse_settings_file.close()
             print(str(datetime.datetime.now()), "Saving ")
             print(str(datetime.datetime.now()), camera_interval)
             print(str(datetime.datetime.now()), camera_ips)
             print(str(datetime.datetime.now()), camera_usernames)
             print(str(datetime.datetime.now()), camera_passwords)
+            print(str(datetime.datetime.now()), camera_start_hour)
+            print(str(datetime.datetime.now()), camera_end_hour)
             print(str(datetime.datetime.now()), "Saved timelapse settings")
             messagebox.showinfo("Success", "Saved timelapse settings")
             messagebox.showinfo("Success", "Restart program for settings to take full effect")
@@ -353,22 +385,23 @@ def timelapseSettings():
     readTimelapseSettings()
 
     popup = tk.Toplevel()
+    popup.geometry("400x400")
     tk.Label(popup, text="Camera IPs").grid(row=0,column=0)
     # TextBox Creation
-    IPInputText = tk.Text(popup, height = 1, width = 20) 
+    IPInputText = tk.Text(popup, height = 1, width =50) 
     IPInputText.grid(row=2,column=0)
     IPInputText.insert(END,camera_ips)
 
     # IPInputText.insert(0, "This is the default text")
 
     tk.Label(popup, text="Useranmes").grid(row=3,column=0)
-    useranameInputText = tk.Text(popup, height = 1, width = 20) 
+    useranameInputText = tk.Text(popup, height = 1, width = 50) 
     useranameInputText.grid(row=4,column=0)
     useranameInputText.insert(END, camera_usernames)
 
 
     tk.Label(popup, text="Passwords").grid(row=5,column=0)
-    passwordInputText = tk.Text(popup, height = 1, width = 20) 
+    passwordInputText = tk.Text(popup, height = 1, width = 50) 
     passwordInputText.grid(row=6,column=0)
     passwordInputText.insert(END,camera_passwords)
 
@@ -377,8 +410,20 @@ def timelapseSettings():
     intervalInputText.grid(row=8,column=0)
     intervalInputText.insert(END,camera_interval)
 
+    tk.Label(popup, text="Start (hour)").grid(row=9,column=0)
+    startHourInputText = tk.Text(popup, height = 1, width = 20) 
+    startHourInputText.grid(row=10,column=0)
+    startHourInputText.insert(END,camera_start_hour)
+
+    tk.Label(popup, text="End (hour)").grid(row=11,column=0)
+    endHourInputText = tk.Text(popup, height = 1, width = 20) 
+    endHourInputText.grid(row=12,column=0)
+    endHourInputText.insert(END,camera_end_hour)
+
+
+
     saveButton = tk.Button(popup, text = "Save", command = saveTimelapseSettings)
-    saveButton.grid(row=9, column=0)
+    saveButton.grid(row=15, column=0)
 
 
 
@@ -759,6 +804,10 @@ def timelapsePlayback():
         playback_skip = 8
     elif string_playback_speed == "16x":
         playback_skip = 16
+    elif string_playback_speed == "32x":
+        playback_skip = 32
+    elif string_playback_speed == "64x":
+        playback_skip = 64
 
 
 
@@ -1246,7 +1295,7 @@ if __name__ == "__main__":
     playback_speed = StringVar(root)
     playback_speed.set("1x") # default value
 
-    select_playback_speed = OptionMenu(root, playback_speed, "1x", "2x", "4x", "8x", "16x")
+    select_playback_speed = OptionMenu(root, playback_speed, "1x", "2x", "4x", "8x", "16x", "32x", "64x")
     select_playback_speed.place(x=220, y=850)
 
     # Picking Dates

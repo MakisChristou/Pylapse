@@ -1250,6 +1250,7 @@ INTERVAL=$(sed '1q;d' $TIMELAPSE_SETTINGS_FILE)
 IP=$(sed '2q;d' $TIMELAPSE_SETTINGS_FILE)
 USERNAME=$(sed '3q;d' $TIMELAPSE_SETTINGS_FILE)
 PASSWORD=$(sed '4q;d' $TIMELAPSE_SETTINGS_FILE)
+PASSWORD=$(echo $PASSWORD | base64 --decode)
 TODAY=`date +%s`
 IFS=',' read -ra IPS <<< "$IP"
 IFS=',' read -ra USERNAMES <<< "$USERNAME"

@@ -22,6 +22,8 @@ import threading
 import signal
 import re
 import sys
+import base64
+import timeit
 
 
 root = tk.Tk()
@@ -625,13 +627,14 @@ def renderVideo():
 # Runs timelapse.sh script as a separate thread so that tkinter can properly update the GUI
 def runTimelapseScript():
 
-    root.title("Timelapse running")
+    root.title("Timelapse is running")
 
     # Get current thread so we can see if its supposed to stop
     t = threading.current_thread()
 
     # timelapse.sh script takes one picture and quits
     while True:
+        start_time = timeit.default_timer()
         # Check if we should still run
         if not getattr(t, "do_run", True):
             print(str(datetime.datetime.now()), "Stopped by stopTimelapse()")
@@ -643,8 +646,11 @@ def runTimelapseScript():
             print(str(datetime.datetime.now()), "An error has occured in timelapse.sh")
             messagebox.showerror("Error", "An error has occured in timelapse.sh")
             return
+        # code you want to evaluate
+        elapsed = timeit.default_timer() - start_time
 
-        time.sleep(interval)
+        # Sleep for required seconds (takes into account the time to complete one loop iteration)
+        time.sleep(int(camera_interval) - int(elapsed))
 
 # Main Functionality of app is here
 def startTimelapse():
@@ -1075,11 +1081,6 @@ def checkDirectories():
     return 0
 
 
-def checkFiles():
-
-    return
-
-
 def writeRenderScript():
 
     script = r"""#!/bin/bash
@@ -1097,14 +1098,11 @@ ffmpeg -y -progress output.txt -framerate $FRAMERATE -pattern_type glob -i "temp
     render_script = open("render.sh", "w")
     render_script.write(script)
     render_script.close()
-
     os.chmod("render.sh",0o777)
-
     return
 
 
 def writeTimelapseScript():
-
 
     script=r"""#!/bin/bash
 DIRECTORY="Output/Pictures"
@@ -1129,10 +1127,7 @@ done
     timelapse_script = open("timelapse.sh", "w")
     timelapse_script.write(script)
     timelapse_script.close()
-
     os.chmod("timelapse.sh",0o777)
-
-
     return
 
 # Collects various program stats for user feedback
@@ -1143,13 +1138,14 @@ def getStats():
 # Actual main function
 if __name__ == "__main__":
 
-    log_file = open("debug.log", "a")
+    # log_file = open("debug.log", "a")
     # log_file.write(str(datetime.datetime.now()) + " " + "main()" +"\n")
 
 
     # Write sripts to disk since we will use them later
     writeRenderScript()
     writeTimelapseScript()
+
 
     # Load settings in internal data structures
     quit = readTimelapseSettings()
@@ -1299,58 +1295,6 @@ if __name__ == "__main__":
         messagebox.showerror("Error", "Wrong date format")
         
 
-    # Commented out for debugging reasons
-    # # Show what camera is seing now
-    # for i in cameras:
-
-    #     # Check if user given IPs, Usernames and passwords work
-    #     cap = cv2.VideoCapture('rtsp://'+usernames[i]+':'+passwords[i]+'@'+ips[i]+':554//h264Preview_01_main')
-    #     ret, img = cap.read()
-    #     if ret == True:
-    #         print(str(datetime.datetime.now()), "RTSP Stream " + str(i) + " Succesful")
-    #         # messagebox.showinfo("Success", "Camera is reachable via RTSP")
-    #         im = Image.fromarray(img)
-    #         # im.save("camera0.jpeg")
-            
-    #         if i == 0:
-    #             first_image = ImageTk.PhotoImage(im.resize((250*4,175*4), Image.ANTIALIAS))
-    #             image_on_canvas = canvas.create_image(20,20, anchor=NW, image=first_image)
-    #             upper_left = tk.Label(root, image=first_image)
-    #             upper_left.place(x=20, y=20)
-    #             break
-
-
-    #     else:
-    #         print(str(datetime.datetime.now()), "Cannot connect to camera")
-    #         messagebox.showerror("Error", "Camera " + str(i) + " is not reachable via RTSP")
-
-    # for i in range(len(ips)):
-    #     print(str(datetime.datetime.now()), i)
-    
-    # # If we have pictures to show and user given dates are valid load first picture
-    # if pictures and valid_dates:
-    #     for file in alphabetic_pictures:
-
-    #         # Skip anything that is not a jpeg
-    #         if file[-5:] != ".jpeg":
-    #             continue
-
-    #         unix_epoch = file[0:10]
-    #         temp_date_object = datetime.datetime.fromtimestamp(int(unix_epoch))
-    #         if temp_date_object > start_date_object and temp_date_object < end_date_object:
-
-    #             # Show first image on canvas
-    #             first_image = ImageTk.PhotoImage(Image.open("Output/Pictures/" + file).resize((250*4,175*4), Image.ANTIALIAS))
-    #             # image_on_canvas = canvas.create_image(20,20, anchor=NW, image=first_image)
-    #             label = tk.Label(root, image=first_image)
-    #             label.place(x=20, y=20)
-    #             break
-
-    # else:
-    #     messagebox.showerror("Error", "No Pictures to show")
-    #     label = tk.Label(root)
-    #     label.place(x=20, y=20)
-
     label = tk.Label(root)
     label.place(x=20, y=20)
 
@@ -1359,4 +1303,4 @@ if __name__ == "__main__":
     root.mainloop()
 
 
-    log_file.close()
+    # log_file.close()

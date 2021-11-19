@@ -345,6 +345,7 @@ def timelapseSettings():
             print(str(datetime.datetime.now()), camera_passwords)
             print(str(datetime.datetime.now()), "Saved timelapse settings")
             messagebox.showinfo("Success", "Saved timelapse settings")
+            messagebox.showinfo("Success", "Restart program for settings to take full effect")
         return
     
 
@@ -736,6 +737,30 @@ def timelapsePlayback():
     global current_playback_image
     global p2 # Main menu progress bar
     global root # Main menu tkinter thingy
+    global current_picture_label
+    global total_pictures_label
+    global playback_speed
+
+
+    string_playback_speed = playback_speed.get()
+
+    print(str(datetime.datetime.now()), "Selected playback speed ", string_playback_speed)
+
+    playback_skip = 1
+
+    if string_playback_speed == "1x":
+        playback_skip = 1
+    elif string_playback_speed == "2x":
+        playback_skip = 2
+    elif string_playback_speed == "4x":
+        playback_skip = 4
+    elif string_playback_speed == "8x":
+        playback_skip = 8
+    elif string_playback_speed == "16x":
+        playback_skip = 16
+
+
+
 
     # Get current thread so we can see if its supposed to stop
     t = threading.current_thread()
@@ -790,8 +815,12 @@ def timelapsePlayback():
     print(str(datetime.datetime.now()), end_date_object)
 
     playback_flag = 0
-
     progress = 0
+    total_pictures_label.config(text=str(len(alphabetic_pictures)))
+
+
+    playback_speed_counter = 0 # For playback speed
+
 
     for file in alphabetic_pictures:
         
@@ -799,12 +828,19 @@ def timelapsePlayback():
         if file[-5:] != ".jpeg":
             continue
 
+        if playback_skip != 1:
+            if playback_speed_counter % playback_skip != 0:
+                playback_speed_counter+=1
+                continue
+
+
         print(str(datetime.datetime.now()), file)
 
         unix_epoch = file[0:10]
         temp_date_object = datetime.datetime.fromtimestamp(int(unix_epoch))
         current_playback_image = alphabetic_pictures.index(file)
         progress = int(current_playback_image/(len(alphabetic_pictures))*100)
+        current_picture_label.config(text=str(current_playback_image))
 
         # Check if we should still run (quits if this is true)
         if not getattr(t, "do_run", True):
@@ -813,6 +849,7 @@ def timelapsePlayback():
             label.configure(image = temp_image)
             label.image = temp_image
             p2["value"] = 0
+            current_picture_label.config(text=str(0))
             root.update() 
             break
 
@@ -832,12 +869,27 @@ def timelapsePlayback():
 
         p2["value"] = progress
         root.update() 
+        playback_speed_counter+=1
 
 
     # If no pictures are played back tell user
     if playback_flag == 0:
         messagebox.showerror("Error", "No pictures captured for selected dates")
         return
+
+
+    # Reset Playback counters and progressbars
+    for file in alphabetic_pictures:
+        # Check if playback dates are within user selected dates
+        if temp_date_object > start_date_object and temp_date_object < end_date_object:
+            # Keep loading the next image if not supposed to stop
+            temp_image = ImageTk.PhotoImage(Image.open(camera_directory + "/" + file).resize((1000,700), Image.ANTIALIAS))
+            label.configure(image = temp_image)
+            label.image = temp_image
+            p2["value"] = 0
+            current_picture_label.config(text=str(0))
+            root.update() 
+            break
 
 # Starts timelapse playback thread in the background
 def startPlayback():
@@ -1107,6 +1159,7 @@ def writeTimelapseScript():
     script=r"""#!/bin/bash
 DIRECTORY="Output/Pictures"
 TIMELAPSE_SETTINGS_FILE="timelapse_settings.txt"
+INTERVAL=$(sed '1q;d' $TIMELAPSE_SETTINGS_FILE)
 IP=$(sed '2q;d' $TIMELAPSE_SETTINGS_FILE)
 USERNAME=$(sed '3q;d' $TIMELAPSE_SETTINGS_FILE)
 PASSWORD=$(sed '4q;d' $TIMELAPSE_SETTINGS_FILE)
@@ -1179,18 +1232,27 @@ if __name__ == "__main__":
 
 
     renderVideo = tk.Button(root,text="Render Video", padx=12, pady=5, command=renderVideo)
-    renderVideo.place(x=420, y=760)
+    renderVideo.place(x=820, y=760)
     # renderVideo.pack()
 
     # Labels for clarity
     tk.Label(root, text="Select Camera").place(x=20, y=820)
-    tk.Label(root, text="Start Date").place(x=220, y=820)
-    tk.Label(root, text="End Date").place(x=420, y=820)
-    tk.Label(root, text="Saved Pictures").place(x=620, y=760)
-    tk.Label(root, text="Saved Videos").place(x=820, y=760)
-    tk.Label(root, text="Pictures Size (GB)").place(x=620, y=820)
-    tk.Label(root, text="Videos Size (GB)").place(x=820, y=820)
+    tk.Label(root, text="Start Date").place(x=820, y=800)
+    tk.Label(root, text="End Date").place(x=820, y=850)
+    tk.Label(root, text="Playbck Speed").place(x=220, y=820)
 
+
+    current_picture_label = tk.Label(root, text="N/A")
+    current_picture_label.place(x=20, y=730)
+    total_pictures_label = tk.Label(root, text= "N/A")
+    total_pictures_label.place(x=975, y=730)
+
+    # Playback Speed
+    playback_speed = StringVar(root)
+    playback_speed.set("1x") # default value
+
+    select_playback_speed = OptionMenu(root, playback_speed, "1x", "2x", "4x", "8x", "16x")
+    select_playback_speed.place(x=220, y=850)
 
     # Picking Dates
     # Get current date
@@ -1198,14 +1260,14 @@ if __name__ == "__main__":
 
     start_date_cal = DateEntry(root, width=12, year=now.year, month=now.month, day=now.day, 
     background='darkblue', foreground='white', borderwidth=2)
-    start_date_cal.place(x=220, y=850)
+    start_date_cal.place(x=820, y=820)
 
     end_date_cal = DateEntry(root, width=12, year=now.year, month=now.month, day=now.day, 
     background='darkblue', foreground='white', borderwidth=2)
-    end_date_cal.place(x=420, y=850)
+    end_date_cal.place(x=820, y=870)
 
-    p2 = Progressbar(root, length=1000, cursor='spider', mode="determinate", orient=tk.HORIZONTAL)
-    p2.place(x=20, y=730)
+    p2 = Progressbar(root, length=905, cursor='spider', mode="determinate", orient=tk.HORIZONTAL)
+    p2.place(x=70, y=730)
 
 
     camera_selection = tk.StringVar(root)

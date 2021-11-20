@@ -202,7 +202,7 @@ def loadTimelapseSettings():
     if not camera_interval or not camera_usernames or not camera_passwords:
         print(str(datetime.datetime.now()), "Some variables are empty")
         messagebox.showerror("Error", "Wrong timelapse_settings.txt format")
-        return
+        return 1
 
     # Check if interval is integer
     try:
@@ -210,7 +210,34 @@ def loadTimelapseSettings():
     except Exception as e:
         print(str(datetime.datetime.now()), "Invalid Interval")
         messagebox.showerror("Error", "Interval must be an integer")
-        return
+        return 1
+
+    # Check if start time is integer
+    try:
+        int(camera_start_hour)
+    except Exception as e:
+        print(str(datetime.datetime.now()), "Invalid Start Hour")
+        messagebox.showerror("Error", "Start Hour must be an integer")
+        return 1
+
+    # Check if start time is integer
+    try:
+        int(camera_end_hour)
+    except Exception as e:
+        print(str(datetime.datetime.now()), "Invalid End Hour")
+        messagebox.showerror("Error", "End Hour must be an integer")
+        return 1
+
+
+    if int(camera_start_hour) < 0 or int(camera_start_hour) > 2359:
+        print(str(datetime.datetime.now()), "Invalid Start Hour")
+        messagebox.showerror("Error", "Invalid Start Hour, modify timelapse settings")
+        return 1
+
+    if int(camera_end_hour) < 0 or int(camera_end_hour) > 2359:
+        print(str(datetime.datetime.now()), "Invalid End Hour")
+        messagebox.showerror("Error", "Invalid End Hour, modify timelapse settings")
+        return 1
 
     # Get number of commas
     a = camera_ips.count(',')
@@ -221,7 +248,7 @@ def loadTimelapseSettings():
     if a != b or a != c or c != b:
         print(str(datetime.datetime.now()), "Wrong timelapse_settings.txt format")
         messagebox.showerror("Error", "Wrong timelapse_settings.txt format")
-        return
+        return 1
 
 
     # Clear so we don't have duplicates
@@ -270,7 +297,7 @@ def loadTimelapseSettings():
     for i in range(len(ips)):
         cameras.append(i)
 
-    return
+    return 0
 
 # Test if timelapse file exists, if so save results in global variables
 def readTimelapseSettings():
@@ -314,7 +341,7 @@ def readTimelapseSettings():
 
 
         # List data structures are filled 
-        loadTimelapseSettings()
+        return loadTimelapseSettings()
 
     else:
         messagebox.showerror("Error", "timelapse_settings.txt file does not exist")
@@ -387,8 +414,10 @@ def timelapseSettings():
         print(str(datetime.datetime.now()), camera_end_hour)
 
 
-        # List data structures are filled 
-        loadTimelapseSettings()
+        # List data structures are filled, don't bother saving incorrect stuff
+        quit = loadTimelapseSettings()
+        if quit == 1:
+            return
 
         # Check data validity
         quit = testRTSPCameras()
@@ -914,9 +943,6 @@ def timelapsePlayback():
 
     playback_flag = 0
     progress = 0
-
-
-
     playback_speed_counter = 0 # For playback speed
 
 
@@ -1262,18 +1288,24 @@ IP=$(sed '2q;d' $TIMELAPSE_SETTINGS_FILE)
 USERNAME=$(sed '3q;d' $TIMELAPSE_SETTINGS_FILE)
 PASSWORD=$(sed '4q;d' $TIMELAPSE_SETTINGS_FILE)
 PASSWORD=$(echo $PASSWORD | base64 --decode)
+TIME_START=$(sed '5q;d' $TIMELAPSE_SETTINGS_FILE)
+TIME_END=$(sed '6q;d' $TIMELAPSE_SETTINGS_FILE)
+CURRENT_TIME=$(date +%H%M)
 TODAY=`date +%s`
 IFS=',' read -ra IPS <<< "$IP"
 IFS=',' read -ra USERNAMES <<< "$USERNAME"
 IFS=',' read -ra PASSWORDS <<< "$PASSWORD"
 SIZE=${#IPS[@]}
-for ((i = 0 ; i < $SIZE ; i++)); do
-    #echo "Counter: $i"
-    SAVE_DIRECTORY="Output/Pictures/Camera"$i
-    #echo $SAVE_DIRECTORY
-    ffmpeg -ss 2 -rtsp_transport tcp -i rtsp://${USERNAMES[i]}:${PASSWORDS[i]}@${IPS[i]}//h264Preview_01_main -y -f image2 -qscale 0 -frames 1  $SAVE_DIRECTORY/$TODAY.jpeg
-done
-#exit
+if [ $CURRENT_TIME -lt $TIME_END ] && [ $TIME_START -lt $CURRENT_TIME ]
+then
+    for ((i = 0 ; i < $SIZE ; i++)); do
+        #echo "Counter: $i"
+        SAVE_DIRECTORY="Output/Pictures/Camera"$i
+        #echo $SAVE_DIRECTORY
+        ffmpeg -ss 2 -rtsp_transport tcp -i rtsp://${USERNAMES[i]}:${PASSWORDS[i]}@${IPS[i]}//h264Preview_01_main -y -f image2 -qscale 0 -frames 1  $SAVE_DIRECTORY/$TODAY.jpeg
+    done
+    #exit
+fi
 #ffmpeg -ss 2 -rtsp_transport tcp -i rtsp://$USERNAME:$PASSWORD@$IP//h264Preview_01_main -y -f image2 -qscale 0 -frames 1  $DIRECTORY/$TODAY.jpeg"""
 
     timelapse_script = open("timelapse.sh", "w")

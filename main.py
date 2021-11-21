@@ -36,6 +36,7 @@ interval=10
 playbackThread = threading.Thread()
 renderingThread = threading.Thread()
 timelapseThread = threading.Thread()
+statusThread = threading.Thread()
 
 ips = [] # Filled in loadTimelapseSettings()
 usernames = [] # Filled in loadTimelapseSettings()
@@ -764,6 +765,19 @@ def renderVideo():
 # Runs timelapse.sh script as a separate thread so that tkinter can properly update the GUI
 def runTimelapseScript():
 
+
+
+    # Run timelapse script here
+    timelapse_process = subprocess.run(["./timelapse.sh"], shell=False)
+    if timelapse_process.returncode == 1:
+        print(str(datetime.datetime.now()), "An error has occured in timelapse.sh")
+        messagebox.showerror("Error", "An error has occured in timelapse.sh")
+
+
+    return
+
+
+
     global camera_ips
     global camera_usernames
     global camera_passwords
@@ -827,6 +841,11 @@ def startTimelapse():
     global camera_start_hour
     global camera_end_hour
 
+    # Remove .stop if it exists
+    file_exists = os.path.exists(".stop")
+    if file_exists:
+        os.remove(".stop")
+
     # Updates the global list variables
         # Load settings in internal data structures
     quit = readTimelapseSettings()
@@ -879,6 +898,7 @@ def startTimelapse():
         print(str(datetime.datetime.now()), "timelapse.sh script not running, continuing")
 
 
+    # Old way of doing things
     global timelapseThread
 
     if timelapseThread.is_alive():
@@ -900,6 +920,27 @@ def startTimelapse():
 
 # Stops the timelapse process
 def stopTimelapse():
+
+    command = ['pgrep', 'timelapse.sh']
+    result = run(command, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+
+    # So we don't expode the server
+    # Stop if rendering script is running already for some reason
+    if result.stdout:
+        print(str(datetime.datetime.now()), "timelapse.sh script is already running, creating .stop")
+        messagebox.showinfo("Success", "Stopping timelapse script, please wait a few seconds")
+        f = open(".stop", "w")
+        f.close()
+        return
+        
+    else:
+        print(str(datetime.datetime.now()), "timelapse.sh script not running")
+        messagebox.showerror("Error", "timelapse.sh script not running")
+        return
+
+
+
+    # Old way of doing things
     if timelapseThread.is_alive():
         print(str(datetime.datetime.now()), "Timelapse Thread is running")
         # Signal playback thread to stop
@@ -1357,6 +1398,39 @@ def enterPassword():
 
     return
 
+# Constantly checks if the timelapse script is running
+def timelapseStatusThread():
+
+
+    # previous = 0
+
+    while True:
+
+        command = ['pgrep', 'timelapse.sh']
+        result = run(command, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+
+        # So we don't expode the server
+        # Stop if rendering script is running already for some reason
+        if result.stdout:
+            print(str(datetime.datetime.now()), "timelapse.sh script is already running")
+            root.title("Timelapse is running")
+
+            # if previous == 1:
+            #     messagebox.showinfo("Notification", "Timelapse is running")
+            # previous = 0
+            
+        else:
+            print(str(datetime.datetime.now()), "timelapse.sh script not running")
+            root.title("Timelapse is not running")
+
+            # if previous == 0:
+            #     messagebox.showinfo("Notification", "Timelapse is notrunning")
+            # previous = 1
+            
+
+        sleep(1)
+
+
 def writeRenderScript():
 
     script = r"""#!/bin/bash
@@ -1381,36 +1455,43 @@ ffmpeg -y -progress output.txt -framerate $FRAMERATE -pattern_type glob -i "temp
 def writeTimelapseScript():
 
     script=r"""#!/bin/bash
-DIRECTORY="Output/Pictures"
-TIMELAPSE_SETTINGS_FILE="timelapse_settings.txt"
-INTERVAL=$(sed '1q;d' $TIMELAPSE_SETTINGS_FILE)
-INTERVAL=$(echo $INTERVAL | base64 --decode)
-IP=$(sed '2q;d' $TIMELAPSE_SETTINGS_FILE)
-IP=$(echo $IP | base64 --decode)
-USERNAME=$(sed '3q;d' $TIMELAPSE_SETTINGS_FILE)
-USERNAME=$(echo $USERNAME | base64 --decode)
-PASSWORD=$(sed '4q;d' $TIMELAPSE_SETTINGS_FILE)
-PASSWORD=$(echo $PASSWORD | base64 --decode)
-TIME_START=$(sed '5q;d' $TIMELAPSE_SETTINGS_FILE)
-TIME_START=$(echo $TIME_START | base64 --decode)
-TIME_END=$(sed '6q;d' $TIMELAPSE_SETTINGS_FILE)
-TIME_END=$(echo $TIME_END | base64 --decode)
-CURRENT_TIME=$(date +%H%M)
-TODAY=`date +%s`
-IFS=',' read -ra IPS <<< "$IP"
-IFS=',' read -ra USERNAMES <<< "$USERNAME"
-IFS=',' read -ra PASSWORDS <<< "$PASSWORD"
-SIZE=${#IPS[@]}
-if [ $CURRENT_TIME -lt $TIME_END ] && [ $TIME_START -lt $CURRENT_TIME ]
-then
-    for ((i = 0 ; i < $SIZE ; i++)); do
-        #echo "Counter: $i"
-        SAVE_DIRECTORY="Output/Pictures/Camera"$i
-        #echo $SAVE_DIRECTORY
-        ffmpeg -ss 2 -rtsp_transport tcp -i rtsp://${USERNAMES[i]}:${PASSWORDS[i]}@${IPS[i]}//h264Preview_01_main -y -f image2 -qscale 0 -frames 1  $SAVE_DIRECTORY/$TODAY.jpeg
-    done
-    #exit
-fi
+while [ ! -f .stop ]
+do
+    start=`date +%s`
+    DIRECTORY="Output/Pictures"
+    TIMELAPSE_SETTINGS_FILE="timelapse_settings.txt"
+    INTERVAL=$(sed '1q;d' $TIMELAPSE_SETTINGS_FILE)
+    INTERVAL=$(echo $INTERVAL | base64 --decode)
+    IP=$(sed '2q;d' $TIMELAPSE_SETTINGS_FILE)
+    IP=$(echo $IP | base64 --decode)
+    USERNAME=$(sed '3q;d' $TIMELAPSE_SETTINGS_FILE)
+    USERNAME=$(echo $USERNAME | base64 --decode)
+    PASSWORD=$(sed '4q;d' $TIMELAPSE_SETTINGS_FILE)
+    PASSWORD=$(echo $PASSWORD | base64 --decode)
+    TIME_START=$(sed '5q;d' $TIMELAPSE_SETTINGS_FILE)
+    TIME_START=$(echo $TIME_START | base64 --decode)
+    TIME_END=$(sed '6q;d' $TIMELAPSE_SETTINGS_FILE)
+    TIME_END=$(echo $TIME_END | base64 --decode)
+    IFS=',' read -ra IPS <<< "$IP"
+    IFS=',' read -ra USERNAMES <<< "$USERNAME"
+    IFS=',' read -ra PASSWORDS <<< "$PASSWORD"
+    SIZE=${#IPS[@]}
+    CURRENT_TIME=$(date +%H%M)
+    TODAY=`date +%s`
+    if [ $CURRENT_TIME -lt $TIME_END ] && [ $TIME_START -lt $CURRENT_TIME ]
+    then
+        for ((i = 0 ; i < $SIZE ; i++)); do
+            #echo "Counter: $i"
+            SAVE_DIRECTORY="Output/Pictures/Camera"$i
+            #echo $SAVE_DIRECTORY
+            ffmpeg -ss 2 -rtsp_transport tcp -i rtsp://${USERNAMES[i]}:${PASSWORDS[i]}@${IPS[i]}//h264Preview_01_main -y -f image2 -qscale 0 -frames 1  $SAVE_DIRECTORY/$TODAY.jpeg
+        done
+        #exit
+    fi
+    end=`date +%s`
+    runtime=$((end-start))
+    sleep $((INTERVAL-runtime))
+done
 #ffmpeg -ss 2 -rtsp_transport tcp -i rtsp://$USERNAME:$PASSWORD@$IP//h264Preview_01_main -y -f image2 -qscale 0 -frames 1  $DIRECTORY/$TODAY.jpeg"""
 
     timelapse_script = open("timelapse.sh", "w")
@@ -1444,6 +1525,21 @@ if __name__ == "__main__":
         # sys.exit()
         messagebox.showerror("Error", "Please configure the program via the menu")
 
+
+    # Remove .stop if it exists
+    file_exists = os.path.exists(".stop")
+    if file_exists:
+        os.remove(".stop")
+
+
+    # Start timelapse status thread
+    if statusThread.is_alive():
+        print(str(datetime.datetime.now()), "Status thread alive, won't start a new one")
+    else:   
+        # Start Rendering in the background
+        statusThread = threading.Thread(target=timelapseStatusThread)
+        statusThread.setDaemon(True)
+        statusThread.start()
 
 
     # Create canvas

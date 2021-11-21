@@ -158,7 +158,6 @@ def writeTimelapseSettings():
 
 # Base64 decode
 def trivial_decrypt(base64_message):
-    # base64_message = 'UHl0aG9uIGlzIGZ1bg=='
     base64_bytes = base64_message.encode('ascii')
     message_bytes = base64.b64decode(base64_bytes)
     message = message_bytes.decode('ascii')
@@ -166,7 +165,6 @@ def trivial_decrypt(base64_message):
 
 # Base64 encode
 def trivial_encrypt(message):
-    # message = "imeenagourounakivromikopoli,admin,imeenagourounakivromikopoli"
     message_bytes = message.encode('ascii')
     base64_bytes = base64.b64encode(message_bytes)
     base64_message = base64_bytes.decode('ascii')
@@ -1065,6 +1063,8 @@ def timelapsePlayback():
 
     # Reset Playback counters and progressbars
     for file in alphabetic_pictures:
+        unix_epoch = file[0:10]
+        temp_date_object = datetime.datetime.fromtimestamp(int(unix_epoch))
         # Check if playback dates are within user selected dates
         if temp_date_object > start_date_object and temp_date_object < end_date_object:
             # Keep loading the next image if not supposed to stop

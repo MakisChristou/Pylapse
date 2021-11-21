@@ -62,6 +62,9 @@ rendering_process = None
 log_file = None
 
 
+settings_password = "agathangelou"
+
+
 # Loads first image on canvas (by default loads first image for today)
 def loadFirstImage():
 
@@ -1257,6 +1260,46 @@ def checkDirectories():
     return 0
 
 
+# Password protected timelapse settings
+def enterPassword():
+    def close_win():
+        password_popup.destroy()
+
+
+    def checkPassword():
+        user_password = password.get()
+        if user_password == settings_password:
+            close_win()
+            timelapseSettings()
+        else:
+            messagebox.showerror("Error", "Wrong password")
+
+
+
+    
+
+    password_popup = tk.Toplevel()
+    password_popup.title("Enter Password")
+    password_popup.geometry("400x200")
+
+    password =tk.StringVar(password_popup)
+
+    # Create Entry Widget for password
+    password = Entry(password_popup, textvariable = password, show="*",width=40)
+    password.pack(pady=5)
+
+    # Create a button to check the password
+    Button(password_popup, text="Ok", font=('Helvetica bold',
+    10),command=checkPassword).pack(pady=10)
+
+    # Create a button to close the window
+    Button(password_popup, text="Cancel", font=('Helvetica bold',
+    10),command=close_win).pack(pady=10)
+
+
+
+    return
+
 def writeRenderScript():
 
     script = r"""#!/bin/bash
@@ -1447,7 +1490,7 @@ if __name__ == "__main__":
     timelapsemenu.add_command(label="Start", command=startTimelapse)
     timelapsemenu.add_command(label="Stop", command=stopTimelapse)
     timelapsemenu.add_command(label="Stitching", command=donothing)
-    timelapsemenu.add_command(label="Settings", command=timelapseSettings)
+    timelapsemenu.add_command(label="Settings", command=enterPassword)
     menubar.add_cascade(label="Timelapse", menu=timelapsemenu)
 
     # menubar.add_cascade(label="Edit", menu=editmenu)

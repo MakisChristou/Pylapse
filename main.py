@@ -1551,8 +1551,9 @@ if __name__ == "__main__":
     timelapsemenu = Menu(menubar, tearoff=0)
     timelapsemenu.add_command(label="Start", command=startTimelapse)
     timelapsemenu.add_command(label="Stop", command=stopTimelapse)
-    timelapsemenu.add_command(label="Stitching", command=donothing)
+    # timelapsemenu.add_command(label="Stitching", command=donothing)
     timelapsemenu.add_command(label="Settings", command=enterPassword)
+    timelapsemenu.add_command(label="Exit", command=root.quit)
     menubar.add_cascade(label="Timelapse", menu=timelapsemenu)
 
     # menubar.add_cascade(label="Edit", menu=editmenu)

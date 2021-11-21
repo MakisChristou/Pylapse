@@ -2,12 +2,17 @@
 DIRECTORY="Output/Pictures"
 TIMELAPSE_SETTINGS_FILE="timelapse_settings.txt"
 INTERVAL=$(sed '1q;d' $TIMELAPSE_SETTINGS_FILE)
+INTERVAL=$(echo $INTERVAL | base64 --decode)
 IP=$(sed '2q;d' $TIMELAPSE_SETTINGS_FILE)
+IP=$(echo $IP | base64 --decode)
 USERNAME=$(sed '3q;d' $TIMELAPSE_SETTINGS_FILE)
+USERNAME=$(echo $USERNAME | base64 --decode)
 PASSWORD=$(sed '4q;d' $TIMELAPSE_SETTINGS_FILE)
 PASSWORD=$(echo $PASSWORD | base64 --decode)
 TIME_START=$(sed '5q;d' $TIMELAPSE_SETTINGS_FILE)
+TIME_START=$(echo $TIME_START | base64 --decode)
 TIME_END=$(sed '6q;d' $TIMELAPSE_SETTINGS_FILE)
+TIME_END=$(echo $TIME_END | base64 --decode)
 CURRENT_TIME=$(date +%H%M)
 TODAY=`date +%s`
 IFS=',' read -ra IPS <<< "$IP"

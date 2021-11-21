@@ -135,10 +135,15 @@ def writeTimelapseSettings():
 
     # Encrypt passwords
     try:
+        camera_ips = trivial_encrypt(camera_ips)
+        camera_usernames = trivial_encrypt(camera_usernames)
         camera_passwords = trivial_encrypt(camera_passwords)
+        camera_interval = trivial_encrypt(camera_interval)
+        camera_start_hour = trivial_encrypt(camera_start_hour)
+        camera_end_hour = trivial_encrypt(camera_end_hour)
     except Exception as e:
-        print(str(datetime.datetime.now()), "Cannot encrypt passwords")
-        messagebox.showerror("Error", "Cannot encrypt passwords")
+        print(str(datetime.datetime.now()), "Cannot encrypt timelapse settings")
+        messagebox.showerror("Error", "Cannot encrypt timelapse settings")
         return
 
     # Write to file (for timelapse.sh script)
@@ -157,7 +162,6 @@ def trivial_decrypt(base64_message):
     base64_bytes = base64_message.encode('ascii')
     message_bytes = base64.b64decode(base64_bytes)
     message = message_bytes.decode('ascii')
-    print(message)
     return message
 
 # Base64 encode
@@ -166,9 +170,7 @@ def trivial_encrypt(message):
     message_bytes = message.encode('ascii')
     base64_bytes = base64.b64encode(message_bytes)
     base64_message = base64_bytes.decode('ascii')
-    print(base64_message)
     return base64_message
-
 
 # loads lits data structures from string data structures
 def loadTimelapseSettings():
@@ -329,10 +331,15 @@ def readTimelapseSettings():
 
         # Decrypt Passwords
         try:
+            camera_interval = trivial_decrypt(camera_interval)
+            camera_ips = trivial_decrypt(camera_ips)
+            camera_usernames = trivial_decrypt(camera_usernames)
             camera_passwords = trivial_decrypt(camera_passwords)
+            camera_start_hour = trivial_decrypt(camera_start_hour)
+            camera_end_hour = trivial_decrypt(camera_end_hour)
         except Exception as e:
-            print(str(datetime.datetime.now()), "Cannot decrypt passwords")
-            messagebox.showerror("Error", "Cannot decrypt passwords")
+            print(str(datetime.datetime.now()), "Cannot decrypt timelapse settings")
+            messagebox.showerror("Error", "Cannot decrypt timelapse settings")
             return 1
         
 
@@ -432,10 +439,15 @@ def timelapseSettings():
             # Save file
 
             try:
+                camera_ips = trivial_encrypt(camera_ips)
+                camera_usernames = trivial_encrypt(camera_usernames)
                 camera_passwords = trivial_encrypt(camera_passwords)
+                camera_interval = trivial_encrypt(camera_interval)
+                camera_start_hour = trivial_encrypt(camera_start_hour)
+                camera_end_hour = trivial_encrypt(camera_end_hour)
             except Exception as e:
-                print(str(datetime.datetime.now()), "Cannot encrypt passwords")
-                messagebox.showerror("Error", "Cannot encrypt passwords")
+                print(str(datetime.datetime.now()), "Cannot encrypt timelapse settings")
+                messagebox.showerror("Error", "Cannot encrypt timelapse settings")
                 return
 
 
@@ -754,7 +766,34 @@ def renderVideo():
 # Runs timelapse.sh script as a separate thread so that tkinter can properly update the GUI
 def runTimelapseScript():
 
+    global camera_ips
+    global camera_usernames
+    global camera_passwords
+    global camera_interval
+    global camera_start_hour
+    global camera_end_hour
+
+
     root.title("Timelapse is running")
+
+    print(str(datetime.datetime.now()), "runTimelapseScript()")
+    print(str(datetime.datetime.now()), "camera_ips: ", camera_ips)
+    print(str(datetime.datetime.now()), "camera_usernames: ", camera_usernames)
+    print(str(datetime.datetime.now()), "camera_passwords: ", camera_passwords)
+    print(str(datetime.datetime.now()), "camera_interval: ", camera_interval)
+    print(str(datetime.datetime.now()), "camera_start_hour: ", camera_start_hour)
+    print(str(datetime.datetime.now()), "camera_end_hour: ", camera_end_hour)
+
+
+    # For some reason the timelapse settings are not decrypted here
+
+    try:
+        camera_interval = trivial_decrypt(camera_interval)
+    except Exception as e:
+        print(str(datetime.datetime.now()), "Cannot decrypt camera_interval")
+        messagebox.showerror("Error", "Cannot decrypt camera_interval")
+        return
+
 
     # Get current thread so we can see if its supposed to stop
     t = threading.current_thread()
@@ -783,16 +822,35 @@ def runTimelapseScript():
 def startTimelapse():
 
 
-    global camera_selection
+    global camera_ips
+    global camera_usernames
+    global camera_passwords
+    global camera_interval
+    global camera_start_hour
+    global camera_end_hour
 
     # Updates the global list variables
-    readTimelapseSettings()
+        # Load settings in internal data structures
+    quit = readTimelapseSettings()
+
+    # # Quit if we can't read config files
+    if quit == 1:
+        # sys.exit()
+        messagebox.showerror("Error", "Please configure the program via the menu")
+
+    # Quit if timelapse settings are incorrect
+    if quit == 1:
+        return
 
     quit = testRTSPCameras()
 
     # Quit if RTSP is not reachable
     if quit == 1:
         return
+
+
+    print("startTimelapse()")
+    print("camera_interval: ", camera_interval)
 
     
 
@@ -1259,7 +1317,6 @@ def checkDirectories():
     
     return 0
 
-
 # Password protected timelapse settings
 def enterPassword():
     def close_win():
@@ -1327,12 +1384,17 @@ def writeTimelapseScript():
 DIRECTORY="Output/Pictures"
 TIMELAPSE_SETTINGS_FILE="timelapse_settings.txt"
 INTERVAL=$(sed '1q;d' $TIMELAPSE_SETTINGS_FILE)
+INTERVAL=$(echo $INTERVAL | base64 --decode)
 IP=$(sed '2q;d' $TIMELAPSE_SETTINGS_FILE)
+IP=$(echo $IP | base64 --decode)
 USERNAME=$(sed '3q;d' $TIMELAPSE_SETTINGS_FILE)
+USERNAME=$(echo $USERNAME | base64 --decode)
 PASSWORD=$(sed '4q;d' $TIMELAPSE_SETTINGS_FILE)
 PASSWORD=$(echo $PASSWORD | base64 --decode)
 TIME_START=$(sed '5q;d' $TIMELAPSE_SETTINGS_FILE)
+TIME_START=$(echo $TIME_START | base64 --decode)
 TIME_END=$(sed '6q;d' $TIMELAPSE_SETTINGS_FILE)
+TIME_END=$(echo $TIME_END | base64 --decode)
 CURRENT_TIME=$(date +%H%M)
 TODAY=`date +%s`
 IFS=',' read -ra IPS <<< "$IP"

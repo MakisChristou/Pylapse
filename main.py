@@ -66,6 +66,27 @@ log_file = None
 settings_password = "agathangelou"
 
 
+def kill_process(name):
+     
+    # Ask user for the name of process
+    try:
+         
+        # iterating through each instance of the process
+        for line in os.popen("ps ax | grep " + name + " | grep -v grep"):
+            fields = line.split()
+             
+            # extracting Process ID from the output
+            pid = fields[0]
+             
+            # terminating process
+            os.kill(int(pid), signal.SIGKILL)
+        print(str(datetime.datetime.now()), "Script Successfully terminated")
+        messagebox.showinfo("Success", "Script successfully terminated")
+         
+    except:
+        print(str(datetime.datetime.now()), "Script could not be successfully terminated")
+        messagebox.showerror("Error", "Script could not be successfully terminated")
+
 # Loads first image on canvas (by default loads first image for today)
 def loadFirstImage():
 
@@ -927,10 +948,11 @@ def stopTimelapse():
     # So we don't expode the server
     # Stop if rendering script is running already for some reason
     if result.stdout:
-        print(str(datetime.datetime.now()), "timelapse.sh script is already running, creating .stop")
-        messagebox.showinfo("Success", "Stopping timelapse script, please wait a few seconds")
+        print(str(datetime.datetime.now()), "timelapse.sh script is already running, creating .stop and killing")
+        # messagebox.showinfo("Success", "Stopping timelapse script, please wait a few seconds")
         f = open(".stop", "w")
         f.close()
+        kill_process("timelapse.sh")
         return
         
     else:
@@ -1184,8 +1206,11 @@ def donothing():
 # Kills rendering thread
 def abortRender():
 
-    global rendering_process
-    rendering_process.kill()
+    # global rendering_process
+    # rendering_process.kill()
+    
+    kill_process("render.sh")
+
     return
 
 # Video rendering progress bar
@@ -1260,7 +1285,7 @@ def progressBar(picture_count):
     tk.Label(popup, text="Video is being rendered").grid(row=0,column=0)
     tk.Label(popup, textvariable=textProgress).grid(row=4,column=0)
     tk.Label(popup, textvariable=textETA).grid(row=5,column=0)
-    # tk.Button(popup,text= "Abort", command=abortRender).grid(row=6,column=0)
+    tk.Button(popup,text= "Abort", command=abortRender).grid(row=6,column=0)
 
     p1 = Progressbar(popup, length=200, cursor='spider', mode="determinate", orient=tk.HORIZONTAL)
     p1.grid(row=2,column=0)

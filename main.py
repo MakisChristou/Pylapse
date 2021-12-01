@@ -37,6 +37,7 @@ playbackThread = threading.Thread()
 renderingThread = threading.Thread()
 timelapseThread = threading.Thread()
 statusThread = threading.Thread()
+deleteThread = threading.Thread()
 
 ips = [] # Filled in loadTimelapseSettings()
 usernames = [] # Filled in loadTimelapseSettings()
@@ -459,12 +460,12 @@ def timelapseSettings():
             # Save file
 
             try:
-                camera_ips = trivial_encrypt(camera_ips)
-                camera_usernames = trivial_encrypt(camera_usernames)
-                camera_passwords = trivial_encrypt(camera_passwords)
-                camera_interval = trivial_encrypt(camera_interval)
-                camera_start_hour = trivial_encrypt(camera_start_hour)
-                camera_end_hour = trivial_encrypt(camera_end_hour)
+                encrypted_camera_ips = trivial_encrypt(camera_ips)
+                encrypted_camera_usernames = trivial_encrypt(camera_usernames)
+                encrypted_camera_passwords = trivial_encrypt(camera_passwords)
+                encrypted_camera_interval = trivial_encrypt(camera_interval)
+                encrypted_camera_start_hour = trivial_encrypt(camera_start_hour)
+                encrypted_camera_end_hour = trivial_encrypt(camera_end_hour)
             except Exception as e:
                 print(str(datetime.datetime.now()), "Cannot encrypt timelapse settings")
                 messagebox.showerror("Error", "Cannot encrypt timelapse settings")
@@ -473,20 +474,27 @@ def timelapseSettings():
 
             # Write to file (for timelapse.sh script)
             timelapse_settings_file = open("timelapse_settings.txt", "w")
-            timelapse_settings_file.write(camera_interval+"\n")
-            timelapse_settings_file.write(camera_ips+"\n")
-            timelapse_settings_file.write(camera_usernames+"\n")
-            timelapse_settings_file.write(camera_passwords+"\n")
-            timelapse_settings_file.write(camera_start_hour+"\n")
-            timelapse_settings_file.write(camera_end_hour+"\n")
+            timelapse_settings_file.write(encrypted_camera_interval+"\n")
+            timelapse_settings_file.write(encrypted_camera_ips+"\n")
+            timelapse_settings_file.write(encrypted_camera_usernames+"\n")
+            timelapse_settings_file.write(encrypted_camera_passwords+"\n")
+            timelapse_settings_file.write(encrypted_camera_start_hour+"\n")
+            timelapse_settings_file.write(encrypted_camera_end_hour+"\n")
             timelapse_settings_file.close()
-            print(str(datetime.datetime.now()), "Saving ")
+            print(str(datetime.datetime.now()), "New Settings ")
             print(str(datetime.datetime.now()), camera_interval)
             print(str(datetime.datetime.now()), camera_ips)
             print(str(datetime.datetime.now()), camera_usernames)
             print(str(datetime.datetime.now()), camera_passwords)
             print(str(datetime.datetime.now()), camera_start_hour)
             print(str(datetime.datetime.now()), camera_end_hour)
+            print(str(datetime.datetime.now()), "Saved in file ")
+            print(str(datetime.datetime.now()), encrypted_camera_interval)
+            print(str(datetime.datetime.now()), encrypted_camera_ips)
+            print(str(datetime.datetime.now()), encrypted_camera_usernames)
+            print(str(datetime.datetime.now()), encrypted_camera_passwords)
+            print(str(datetime.datetime.now()), encrypted_camera_start_hour)
+            print(str(datetime.datetime.now()), encrypted_camera_end_hour)
             print(str(datetime.datetime.now()), "Saved timelapse settings")
             messagebox.showinfo("Success", "Saved timelapse settings")
             messagebox.showinfo("Success", "Restart program for settings to take full effect")
@@ -1456,6 +1464,23 @@ def timelapseStatusThread():
         sleep(1)
 
 
+# Contantly checks how many pictures are stored and deletes old ones
+def deletePicturesThread():
+
+
+    
+
+    while True:
+
+        
+        print("Interval ", camera_interval)
+
+
+        sleep(1)
+
+
+    return
+
 def writeRenderScript():
 
     script = r"""#!/bin/bash
@@ -1565,6 +1590,18 @@ if __name__ == "__main__":
         statusThread = threading.Thread(target=timelapseStatusThread)
         statusThread.setDaemon(True)
         statusThread.start()
+
+
+
+    # Start delete thread status thread
+    if deleteThread.is_alive():
+        print(str(datetime.datetime.now()), "Delete thread alive, won't start a new one")
+    else:   
+        # Start Rendering in the background
+        deleteThread = threading.Thread(target=deletePicturesThread)
+        deleteThread.setDaemon(True)
+        deleteThread.start()
+
 
 
     # Create canvas

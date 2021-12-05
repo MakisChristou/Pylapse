@@ -163,13 +163,13 @@ def writeTimelapseSettings():
 
     # Encrypt passwords
     try:
-        camera_ips = trivial_encrypt(camera_ips)
-        camera_usernames = trivial_encrypt(camera_usernames)
-        camera_passwords = trivial_encrypt(camera_passwords)
-        camera_interval = trivial_encrypt(camera_interval)
-        camera_start_hour = trivial_encrypt(camera_start_hour)
-        camera_end_hour = trivial_encrypt(camera_end_hour)
-        camera_store_last = trivial_encrypt(camera_store_last)
+        encrypted_camera_ips = trivial_encrypt(camera_ips)
+        encrypted_camera_usernames = trivial_encrypt(camera_usernames)
+        encrypted_camera_passwords = trivial_encrypt(camera_passwords)
+        encrypted_camera_interval = trivial_encrypt(camera_interval)
+        encrypted_camera_start_hour = trivial_encrypt(camera_start_hour)
+        encrypted_camera_end_hour = trivial_encrypt(camera_end_hour)
+        encrypted_camera_store_last = trivial_encrypt(camera_store_last)
     except Exception as e:
         print(str(datetime.datetime.now()), "Cannot encrypt timelapse settings")
         messagebox.showerror("Error", "Cannot encrypt timelapse settings")
@@ -177,13 +177,13 @@ def writeTimelapseSettings():
 
     # Write to file (for timelapse.sh script)
     timelapse_settings_file = open("timelapse_settings.txt", "w")
-    timelapse_settings_file.write(camera_interval+"\n")
-    timelapse_settings_file.write(camera_ips+"\n")
-    timelapse_settings_file.write(camera_usernames+"\n")
-    timelapse_settings_file.write(camera_passwords+"\n")
-    timelapse_settings_file.write(camera_start_hour+"\n")
-    timelapse_settings_file.write(camera_end_hour+"\n")
-    timelapse_settings_file.write(camera_store_last+"\n")
+    timelapse_settings_file.write(encrypted_camera_interval+"\n")
+    timelapse_settings_file.write(encrypted_camera_ips+"\n")
+    timelapse_settings_file.write(encrypted_camera_usernames+"\n")
+    timelapse_settings_file.write(encrypted_camera_passwords+"\n")
+    timelapse_settings_file.write(encrypted_camera_start_hour+"\n")
+    timelapse_settings_file.write(encrypted_camera_end_hour+"\n")
+    timelapse_settings_file.write(encrypted_camera_store_last+"\n")
     timelapse_settings_file.close()
 
 # Base64 decode

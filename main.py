@@ -51,6 +51,7 @@ camera_passwords = "" # Filled either in readTimelapseSettings() or saveTimelaps
 camera_interval = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
 camera_start_hour = ""
 camera_end_hour = ""
+camera_store_last = ""
 
 current_playback_image = 0
 
@@ -110,6 +111,7 @@ def writeTimelapseSettings():
     global camera_interval
     global camera_start_hour
     global camera_end_hour
+    global camera_store_last
 
     # Remove whitespace from strings
     camera_ips = re.sub(r"\s+", "", camera_ips, flags=re.UNICODE)
@@ -118,6 +120,8 @@ def writeTimelapseSettings():
     camera_interval = re.sub(r"\s+", "", camera_interval, flags=re.UNICODE)
     camera_start_hour = re.sub(r"\s+", "", camera_start_hour, flags=re.UNICODE)
     camera_end_hour = re.sub(r"\s+", "", camera_end_hour, flags=re.UNICODE)
+    camera_store_last = re.sub(r"\s+", "", camera_store_last, flags=re.UNICODE)
+
 
     print(str(datetime.datetime.now()), "loadTimelapseSettings()")
     print(str(datetime.datetime.now()), camera_ips)
@@ -126,6 +130,7 @@ def writeTimelapseSettings():
     print(str(datetime.datetime.now()), camera_interval)
     print(str(datetime.datetime.now()), camera_start_hour)
     print(str(datetime.datetime.now()), camera_end_hour)
+    print(str(datetime.datetime.now()), camera_store_last)
 
 
     # Check if empty variables
@@ -164,6 +169,7 @@ def writeTimelapseSettings():
         camera_interval = trivial_encrypt(camera_interval)
         camera_start_hour = trivial_encrypt(camera_start_hour)
         camera_end_hour = trivial_encrypt(camera_end_hour)
+        camera_store_last = trivial_encrypt(camera_store_last)
     except Exception as e:
         print(str(datetime.datetime.now()), "Cannot encrypt timelapse settings")
         messagebox.showerror("Error", "Cannot encrypt timelapse settings")
@@ -177,6 +183,7 @@ def writeTimelapseSettings():
     timelapse_settings_file.write(camera_passwords+"\n")
     timelapse_settings_file.write(camera_start_hour+"\n")
     timelapse_settings_file.write(camera_end_hour+"\n")
+    timelapse_settings_file.write(camera_store_last+"\n")
     timelapse_settings_file.close()
 
 # Base64 decode
@@ -202,6 +209,7 @@ def loadTimelapseSettings():
     global camera_interval
     global camera_start_hour
     global camera_end_hour
+    global camera_store_last
 
     global ips
     global usernames
@@ -214,7 +222,8 @@ def loadTimelapseSettings():
     camera_passwords = re.sub(r"\s+", "", camera_passwords, flags=re.UNICODE)
     camera_interval = re.sub(r"\s+", "", camera_interval, flags=re.UNICODE)
     camera_start_hour = re.sub(r"\s+", "", camera_start_hour, flags=re.UNICODE)
-    camera_end_hour = re.sub(r"\s+", "", camera_end_hour, flags=re.UNICODE)    
+    camera_end_hour = re.sub(r"\s+", "", camera_end_hour, flags=re.UNICODE)
+    camera_store_last = re.sub(r"\s+", "", camera_store_last, flags=re.UNICODE)   
 
     print(str(datetime.datetime.now()), "loadTimelapseSettings()")
     print(str(datetime.datetime.now()), camera_ips)
@@ -223,6 +232,7 @@ def loadTimelapseSettings():
     print(str(datetime.datetime.now()), camera_interval)
     print(str(datetime.datetime.now()), camera_start_hour)
     print(str(datetime.datetime.now()), camera_end_hour)
+    print(str(datetime.datetime.now()), camera_store_last)
 
     # Check if empty variables
     if not camera_interval or not camera_usernames or not camera_passwords:
@@ -252,6 +262,19 @@ def loadTimelapseSettings():
     except Exception as e:
         print(str(datetime.datetime.now()), "Invalid End Hour")
         messagebox.showerror("Error", "End Hour must be an integer")
+        return 1
+
+    # Check if number of months is integer
+    try:
+        int(camera_store_last)
+    except Exception as e:
+        print(str(datetime.datetime.now()), "Invalid Months to store")
+        messagebox.showerror("Error", "Months to store must be an integer")
+        return 1
+
+    if int(camera_store_last) < 0:
+        print(str(datetime.datetime.now()), "Invalid Months to store")
+        messagebox.showerror("Error", "Months to store must be positive")
         return 1
 
 
@@ -337,6 +360,7 @@ def readTimelapseSettings():
     global camera_interval
     global camera_start_hour
     global camera_end_hour
+    global camera_store_last
 
 
     if file_exists:
@@ -348,6 +372,7 @@ def readTimelapseSettings():
         camera_passwords = lines[3]
         camera_start_hour = lines[4]
         camera_end_hour = lines[5]
+        camera_store_last = lines[6]
 
 
         # Decrypt Passwords
@@ -358,6 +383,7 @@ def readTimelapseSettings():
             camera_passwords = trivial_decrypt(camera_passwords)
             camera_start_hour = trivial_decrypt(camera_start_hour)
             camera_end_hour = trivial_decrypt(camera_end_hour)
+            camera_store_last = trivial_decrypt(camera_store_last)
         except Exception as e:
             print(str(datetime.datetime.now()), "Cannot decrypt timelapse settings")
             messagebox.showerror("Error", "Cannot decrypt timelapse settings")
@@ -366,7 +392,7 @@ def readTimelapseSettings():
 
 
         # Check if variables are empty
-        if len(lines) != 6:
+        if len(lines) != 7:
             messagebox.showerror("Error", "Wrong timelapse_settings.txt format")
             return 1
 
@@ -416,6 +442,7 @@ def timelapseSettings():
         global camera_interval
         global camera_start_hour
         global camera_end_hour
+        global camera_store_last
 
 
         # Get data from text boxes
@@ -425,6 +452,7 @@ def timelapseSettings():
         camera_interval = intervalInputText.get(1.0, "end-1c")
         camera_start_hour = startHourInputText.get(1.0, "end-1c")
         camera_end_hour = endHourInputText.get(1.0, "end-1c")
+        camera_store_last = storeLastInputText.get(1.0, "end-1c")
 
 
         # Remove whitespace from strings
@@ -434,6 +462,7 @@ def timelapseSettings():
         camera_interval = re.sub(r"\s+", "", camera_interval, flags=re.UNICODE)
         camera_start_hour = re.sub(r"\s+", "", camera_start_hour, flags=re.UNICODE)
         camera_end_hour = re.sub(r"\s+", "", camera_end_hour, flags=re.UNICODE)
+        camera_store_last = re.sub(r"\s+", "", camera_store_last, flags=re.UNICODE)
 
 
         print(str(datetime.datetime.now()), "SaveTimelapseSettings()")
@@ -443,6 +472,7 @@ def timelapseSettings():
         print(str(datetime.datetime.now()), camera_interval)
         print(str(datetime.datetime.now()), camera_start_hour)
         print(str(datetime.datetime.now()), camera_end_hour)
+        print(str(datetime.datetime.now()), camera_store_last)
 
 
         # List data structures are filled, don't bother saving incorrect stuff
@@ -466,6 +496,8 @@ def timelapseSettings():
                 encrypted_camera_interval = trivial_encrypt(camera_interval)
                 encrypted_camera_start_hour = trivial_encrypt(camera_start_hour)
                 encrypted_camera_end_hour = trivial_encrypt(camera_end_hour)
+                encrypted_camera_store_last = trivial_encrypt(camera_store_last)
+
             except Exception as e:
                 print(str(datetime.datetime.now()), "Cannot encrypt timelapse settings")
                 messagebox.showerror("Error", "Cannot encrypt timelapse settings")
@@ -480,6 +512,7 @@ def timelapseSettings():
             timelapse_settings_file.write(encrypted_camera_passwords+"\n")
             timelapse_settings_file.write(encrypted_camera_start_hour+"\n")
             timelapse_settings_file.write(encrypted_camera_end_hour+"\n")
+            timelapse_settings_file.write(encrypted_camera_store_last+"\n")
             timelapse_settings_file.close()
             print(str(datetime.datetime.now()), "New Settings ")
             print(str(datetime.datetime.now()), camera_interval)
@@ -488,6 +521,7 @@ def timelapseSettings():
             print(str(datetime.datetime.now()), camera_passwords)
             print(str(datetime.datetime.now()), camera_start_hour)
             print(str(datetime.datetime.now()), camera_end_hour)
+            print(str(datetime.datetime.now()), camera_store_last)
             print(str(datetime.datetime.now()), "Saved in file ")
             print(str(datetime.datetime.now()), encrypted_camera_interval)
             print(str(datetime.datetime.now()), encrypted_camera_ips)
@@ -495,6 +529,7 @@ def timelapseSettings():
             print(str(datetime.datetime.now()), encrypted_camera_passwords)
             print(str(datetime.datetime.now()), encrypted_camera_start_hour)
             print(str(datetime.datetime.now()), encrypted_camera_end_hour)
+            print(str(datetime.datetime.now()), encrypted_camera_store_last)
             print(str(datetime.datetime.now()), "Saved timelapse settings")
             messagebox.showinfo("Success", "Saved timelapse settings")
             messagebox.showinfo("Success", "Restart program for settings to take full effect")
@@ -539,6 +574,11 @@ def timelapseSettings():
     endHourInputText = tk.Text(popup, height = 1, width = 20) 
     endHourInputText.grid(row=12,column=0)
     endHourInputText.insert(END,camera_end_hour)
+
+    tk.Label(popup, text="Store Last (months)").grid(row=13,column=0)
+    storeLastInputText = tk.Text(popup, height = 1, width = 20) 
+    storeLastInputText.grid(row=14,column=0)
+    storeLastInputText.insert(END,camera_store_last)
 
 
 
@@ -873,6 +913,7 @@ def startTimelapse():
     global camera_interval
     global camera_start_hour
     global camera_end_hour
+    global camera_store_last
 
     # Remove .stop if it exists
     file_exists = os.path.exists(".stop")

@@ -1508,7 +1508,6 @@ def timelapseStatusThread():
 
         sleep(1)
 
-
 # Returns average size of pictures of a given camera in bytes
 def getAveragePictureSize(camera_selection):
 
@@ -1532,7 +1531,6 @@ def getAveragePictureSize(camera_selection):
 
     return
 
-
 # Contantly checks how many pictures are stored and deletes old ones
 def deletePicturesThread():
 
@@ -1543,6 +1541,15 @@ def deletePicturesThread():
 
         
         print("Interval ", camera_interval)
+        print("Store last", camera_store_last, " months")
+
+        presentDate = datetime.datetime.now()
+        unix_timestamp = datetime.datetime.timestamp(presentDate)
+        # print(int(unix_timestamp))
+
+        unix_today = int(unix_timestamp)
+        seconds_in_last_N_months = 2629743*int(camera_store_last)
+
 
         # Check if directories have been modified
         quit = checkDirectories()
@@ -1564,11 +1571,17 @@ def deletePicturesThread():
                 print(str(datetime.datetime.now()), len(pictures), " pictures recorded by camera"+str(i) )
 
 
-            getAveragePictureSize(i)
-        
+            # getAveragePictureSize(i)
+
+            for file in alphabetic_pictures:
+                file_unix_epoch = file[0:10]
+
+                # File is older than X months
+                if int(file_unix_epoch) < (unix_today-seconds_in_last_N_months):
+                    os.remove(camera_directory+"/"+file)
 
 
-        sleep(10)
+        sleep(100)
 
 
     return

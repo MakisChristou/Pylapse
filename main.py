@@ -1468,6 +1468,30 @@ def timelapseStatusThread():
         sleep(1)
 
 
+# Returns average size of pictures of a given camera in bytes
+def getAveragePictureSize(camera_selection):
+
+
+    camera_directory = 'Output/Pictures/Camera' + str(camera_selection)
+            
+
+    pictures = os.listdir(path=camera_directory)
+    alphabetic_pictures = sorted(pictures)
+
+    total_size = 0
+
+    for picture in alphabetic_pictures:
+        total_size += os.path.getsize(camera_directory+"/"+picture)
+
+
+    average_size = total_size/len(alphabetic_pictures)
+
+    print(str(datetime.datetime.now()), "Average Picture size for camera"+str(camera_selection) +" is "+str(average_size))
+
+
+    return
+
+
 # Contantly checks how many pictures are stored and deletes old ones
 def deletePicturesThread():
 
@@ -1479,8 +1503,31 @@ def deletePicturesThread():
         
         print("Interval ", camera_interval)
 
+        # Check if directories have been modified
+        quit = checkDirectories()
+        if quit:
+            return
+        
 
-        sleep(1)
+        for i in cameras:
+            camera_directory = 'Output/Pictures/Camera' + str(i)
+            
+
+            pictures = os.listdir(path=camera_directory)
+            alphabetic_pictures = sorted(pictures)
+
+            if not alphabetic_pictures:
+                print(str(datetime.datetime.now()), "No pictures recorded by camera"+str(i))
+                continue
+            else:
+                print(str(datetime.datetime.now()), len(pictures), " pictures recorded by camera"+str(i) )
+
+
+            getAveragePictureSize(i)
+        
+
+
+        sleep(10)
 
 
     return
@@ -1586,27 +1633,6 @@ if __name__ == "__main__":
         os.remove(".stop")
 
 
-    # Start timelapse status thread
-    if statusThread.is_alive():
-        print(str(datetime.datetime.now()), "Status thread alive, won't start a new one")
-    else:   
-        # Start Rendering in the background
-        statusThread = threading.Thread(target=timelapseStatusThread)
-        statusThread.setDaemon(True)
-        statusThread.start()
-
-
-
-    # Start delete thread status thread
-    if deleteThread.is_alive():
-        print(str(datetime.datetime.now()), "Delete thread alive, won't start a new one")
-    else:   
-        # Start Rendering in the background
-        deleteThread = threading.Thread(target=deletePicturesThread)
-        deleteThread.setDaemon(True)
-        deleteThread.start()
-
-
 
     # Create canvas
     canvas = tk.Canvas(root, height=900, width=1035)
@@ -1674,6 +1700,28 @@ if __name__ == "__main__":
     
     # Construct nessasary folder structures
     createDirectories()
+
+
+
+    # Start timelapse status thread
+    if statusThread.is_alive():
+        print(str(datetime.datetime.now()), "Status thread alive, won't start a new one")
+    else:   
+        # Start Rendering in the background
+        statusThread = threading.Thread(target=timelapseStatusThread)
+        statusThread.setDaemon(True)
+        statusThread.start()
+
+
+
+    # Start delete thread status thread
+    if deleteThread.is_alive():
+        print(str(datetime.datetime.now()), "Delete thread alive, won't start a new one")
+    else:   
+        # Start Rendering in the background
+        deleteThread = threading.Thread(target=deletePicturesThread)
+        deleteThread.setDaemon(True)
+        deleteThread.start()
 
 
     # Menu Items

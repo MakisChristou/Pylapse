@@ -38,6 +38,7 @@ renderingThread = threading.Thread()
 timelapseThread = threading.Thread()
 statusThread = threading.Thread()
 deleteThread = threading.Thread()
+errorCheckThread = threading.Thread()
 
 ips = [] # Filled in loadTimelapseSettings()
 usernames = [] # Filled in loadTimelapseSettings()
@@ -49,9 +50,9 @@ camera_ips = "" # Filled either in readTimelapseSettings() or saveTimelapseSetti
 camera_usernames = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
 camera_passwords = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
 camera_interval = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
-camera_start_hour = ""
-camera_end_hour = ""
-camera_store_last = ""
+camera_start_hour = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
+camera_end_hour = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
+camera_store_last = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
 
 current_playback_image = 0
 
@@ -1540,8 +1541,8 @@ def deletePicturesThread():
     while True:
 
         
-        print("Interval ", camera_interval)
-        print("Store last", camera_store_last, " months")
+        # print("Interval ", camera_interval)
+        # print("Store last", camera_store_last, " months")
 
         presentDate = datetime.datetime.now()
         unix_timestamp = datetime.datetime.timestamp(presentDate)
@@ -1585,6 +1586,58 @@ def deletePicturesThread():
 
 
     return
+
+# Checks if pictures are being captured
+def timelapseErrorThread():
+
+    # While true
+
+    # if timelapse script is running
+
+    # Check timestamp of last picture
+
+    # save it
+
+    # Sleep for > interval  
+
+    # wake up and compare timestamp of last picture to second last
+
+
+
+    latest_picture_timestamps = []
+
+    for i in cameras:
+        latest_picture_timestamps.append(0)
+
+
+    while True:
+
+        command = ['pgrep', 'timelapse.sh']
+        result = run(command, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+
+        # If timelapse script is running and directories exist check if actual new pictures are being captured
+        if (checkDirectories() == 0) and result.stdout:
+
+                for i in cameras:
+                    camera_directory = 'Output/Pictures/Camera' + str(i)
+                    pictures = os.listdir(path=camera_directory)
+                    alphabetic_pictures = sorted(pictures)
+
+                    # Pictures have not been taken ()
+                    if (alphabetic_pictures[-1] == latest_picture_timestamps[i]) and (latest_picture_timestamps[i] != 0):
+                        messagebox.showerror("Error","Timelape pictures are not being captured from camera"+str(i))
+                        print(str(datetime.datetime.now()),"Timelape pictures are not being captured from camera"+str(i))
+                        return
+                    else:
+                        latest_picture_timestamps[i] = alphabetic_pictures[-1]
+
+
+                # print(latest_picture_timestamps)
+
+
+        sleep(int(camera_interval)*2)
+
+
 
 def writeRenderScript():
 
@@ -1768,7 +1821,7 @@ if __name__ == "__main__":
 
 
 
-    # Start delete thread status thread
+    # Start delete thread
     if deleteThread.is_alive():
         print(str(datetime.datetime.now()), "Delete thread alive, won't start a new one")
     else:   
@@ -1776,6 +1829,16 @@ if __name__ == "__main__":
         deleteThread = threading.Thread(target=deletePicturesThread)
         deleteThread.setDaemon(True)
         deleteThread.start()
+
+
+    # Start error checking thread thread
+    if errorCheckThread.is_alive():
+        print(str(datetime.datetime.now()), "Error check thread alive, won't start a new one")
+    else:   
+        # Start Rendering in the background
+        errorCheckThread = threading.Thread(target=timelapseErrorThread)
+        errorCheckThread.setDaemon(True)
+        errorCheckThread.start()
 
 
     # Menu Items

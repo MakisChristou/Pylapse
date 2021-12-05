@@ -657,7 +657,11 @@ def renderVideo():
 
 
     # Check if we have the target folder to render to
-    checkDirectories()
+    quit = checkDirectories()
+
+    # Quit if folder structure has been modified since starting the program
+    if quit == 1:
+        return
 
     # print(str(datetime.datetime.now()), type(start_date_cal.get_date()))
     # print(str(datetime.datetime.now()), str(start_date_cal.get_date().year))
@@ -1467,7 +1471,7 @@ def timelapseStatusThread():
 # Contantly checks how many pictures are stored and deletes old ones
 def deletePicturesThread():
 
-
+    # User should choose to store the last N months and the code should do the rest
     
 
     while True:

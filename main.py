@@ -24,7 +24,7 @@ import re
 import sys
 import base64
 import timeit
-
+import yagmail
 
 root = tk.Tk()
 root.title("Timelapse not running")
@@ -1591,6 +1591,12 @@ def deletePicturesThread():
 # Checks if pictures are being captured
 def timelapseErrorThread():
 
+    
+    yagmail.SMTP('timelapse796').send('makis_christou@protonmail.com', 'Timelapse Error!!!', 'Timelapse Pictures are not being taken from camera')
+    yagmail.SMTP('timelapse796').send('mario.christou@gmail.com', 'Timelapse Error!!!', 'Timelapse Pictures are not being taken from camera')
+    # return
+
+
     latest_picture_timestamps = []
 
     for i in cameras:
@@ -1621,6 +1627,8 @@ def timelapseErrorThread():
                     if (alphabetic_pictures[-1] == latest_picture_timestamps[i]) and (latest_picture_timestamps[i] != 0) and (int(current_camera_hour) <= int(camera_end_hour)) and (int(current_camera_hour) >= int(camera_start_hour)):
                         messagebox.showerror("Error","Timelape pictures are not being captured from camera"+str(i))
                         print(str(datetime.datetime.now()),"Timelape pictures are not being captured from camera"+str(i))
+                        yagmail.SMTP('timelapse796').send('makis_christou@protonmail.com', 'Timelapse Error!!!', 'Timelapse Pictures are not being taken from camera'+str(i))
+                        yagmail.SMTP('timelapse796').send('mario.christou@gmail.com', 'Timelapse Error!!!', 'Timelapse Pictures are not being taken from camera'+str(i))
                         return
                     else:
                         latest_picture_timestamps[i] = alphabetic_pictures[-1]

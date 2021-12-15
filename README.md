@@ -8,6 +8,7 @@
 - Playback progress bar
 - Timelapse running even if application is accidentally closed
 - Start/End time of time-lapse (e.g. always start at 7am and end at 7PM)
+- Notify by email when timelapse stops working
 
 
 ## Screenshots
@@ -28,7 +29,22 @@ pip install opencv-python
 pip install tkcalendar
 pip install requests
 pip install --upgrade psutil
+pip3 install yagmail[all]
 ```
+
+## Store gmail credentials on keyring
+
+### Step 1: Open a python3 interpreter
+
+### Step 2: Execute the following
+
+`import yagmail`
+`yagmail.SMTP('mygmailusername').send('to@someone.com', 'subject', 'This is the body')`
+
+### Step 3: Enter email password when prompted
+
+
+### Step 3: Choose y when prompted to save the credentials on keyring
 
 
 ## Running 

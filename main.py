@@ -534,6 +534,7 @@ def timelapseSettings():
             print(str(datetime.datetime.now()), "Saved timelapse settings")
             messagebox.showinfo("Success", "Saved timelapse settings")
             messagebox.showinfo("Success", "Restart program for settings to take full effect")
+            sys.exit()
         return
     
 

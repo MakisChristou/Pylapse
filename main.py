@@ -1592,8 +1592,8 @@ def deletePicturesThread():
 def timelapseErrorThread():
 
     
-    yagmail.SMTP('timelapse796').send('makis_christou@protonmail.com', 'Timelapse Error!!!', 'Timelapse Pictures are not being taken from camera')
-    yagmail.SMTP('timelapse796').send('mario.christou@gmail.com', 'Timelapse Error!!!', 'Timelapse Pictures are not being taken from camera')
+    # yagmail.SMTP('timelapse796').send('makis_christou@protonmail.com', 'Timelapse Error!!!', 'Timelapse Pictures are not being taken from camera')
+    # yagmail.SMTP('timelapse796').send('mario.christou@gmail.com', 'Timelapse Error!!!', 'Timelapse Pictures are not being taken from camera')
     # return
 
 

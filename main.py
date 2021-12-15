@@ -1582,27 +1582,13 @@ def deletePicturesThread():
                     os.remove(camera_directory+"/"+file)
 
 
-        sleep(100)
+        sleep(int(camera_interval)*2)
 
 
     return
 
 # Checks if pictures are being captured
 def timelapseErrorThread():
-
-    # While true
-
-    # if timelapse script is running
-
-    # Check timestamp of last picture
-
-    # save it
-
-    # Sleep for > interval  
-
-    # wake up and compare timestamp of last picture to second last
-
-
 
     latest_picture_timestamps = []
 
@@ -1624,7 +1610,14 @@ def timelapseErrorThread():
                     alphabetic_pictures = sorted(pictures)
 
                     # Pictures have not been taken ()
-                    if (alphabetic_pictures[-1] == latest_picture_timestamps[i]) and (latest_picture_timestamps[i] != 0):
+                    # Check camera start and end hours
+
+                    now = datetime.datetime.now()
+                    current_camera_hour = now.strftime("%H%M")
+                    print(str(datetime.datetime.now())," Current Time =", current_camera_hour)
+
+
+                    if (alphabetic_pictures[-1] == latest_picture_timestamps[i]) and (latest_picture_timestamps[i] != 0) and (int(current_camera_hour) <= int(camera_end_hour)) and (int(current_camera_hour) >= int(camera_start_hour)):
                         messagebox.showerror("Error","Timelape pictures are not being captured from camera"+str(i))
                         print(str(datetime.datetime.now()),"Timelape pictures are not being captured from camera"+str(i))
                         return

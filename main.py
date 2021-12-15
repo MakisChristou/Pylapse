@@ -942,8 +942,8 @@ def startTimelapse():
         return
 
 
-    print("startTimelapse()")
-    print("camera_interval: ", camera_interval)
+    # print("startTimelapse()")
+    # print("camera_interval: ", camera_interval)
 
     
 
@@ -1889,7 +1889,7 @@ if __name__ == "__main__":
     helpmenu = Menu(menubar, tearoff=0)
     helpmenu.add_command(label="Help Index", command=donothing)
     helpmenu.add_command(label="About...", command=donothing)
-    menubar.add_cascade(label="Help", menu=helpmenu)
+    # menubar.add_cascade(label="Help", menu=helpmenu)
 
     root.config(menu=menubar)
 

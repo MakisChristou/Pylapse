@@ -685,6 +685,7 @@ def chooseDuration(picture_count):
 
 # Bonus ability because of Agathangelou requirements
 def renderVideo():
+
     # Checks if render.sh script is running
     command = ['pgrep', 'render.sh']
     result = run(command, stdout=PIPE, stderr=PIPE, universal_newlines=True)
@@ -759,7 +760,7 @@ def renderVideo():
         render_settings_file.close()
 
 
-        picture_count = 0
+        
         # Make sure temp dir is empty
         if os.path.isdir("temp"):
             shutil.rmtree("temp")
@@ -782,7 +783,11 @@ def renderVideo():
         # Why do I have to do this? (bug)
         # pictures.remove(".jpeg")
 
-        print(str(datetime.datetime.now()), "Copying files to temp dir")
+        print(str(datetime.datetime.now()), "Copying files to temp dir, please wait")
+        # messagebox.showinfo("Note","Copying files to temp dir, please wait")
+
+        # Here, run this into a separate thread
+        picture_count = 0
 
         # Copy everyting to temp dir
         for file in pictures:
@@ -1544,7 +1549,6 @@ def getAveragePictureSize(camera_selection):
 def deletePicturesThread():
 
     # User should choose to store the last N months and the code should do the rest
-    
 
     while True:
 
@@ -1577,7 +1581,7 @@ def deletePicturesThread():
                 print(str(datetime.datetime.now()), "No pictures recorded by camera"+str(i))
                 continue
             else:
-                print(str(datetime.datetime.now()), len(pictures), " pictures recorded by camera"+str(i) )
+                print(str(datetime.datetime.now()), len(pictures), "pictures recorded by camera"+str(i) )
 
 
             # getAveragePictureSize(i)
@@ -1645,7 +1649,6 @@ def timelapseErrorThread():
 
 
         sleep(int(camera_interval)*2)
-
 
 
 def writeRenderScript():

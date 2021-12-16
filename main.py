@@ -818,10 +818,17 @@ def renderVideo():
         elif picture_count == -1:
             print(str(datetime.datetime.now()), "Aborting Render")
             messagebox.showerror("Error", "Aborting Render")
+            # Remove temp directory
+            if os.path.isdir("temp"):
+                shutil.rmtree("temp")
+
             return
         else:
             print(str(datetime.datetime.now()), "Not enough pictures for playback")
             messagebox.showerror("Error", "Not enough pictures for rendering")
+            # Remove temp directory
+            if os.path.isdir("temp"):
+                shutil.rmtree("temp")
             return
 
         # Remove temp directory
@@ -1629,7 +1636,7 @@ def timelapseErrorThread():
                         yagmail.SMTP('timelapse796').send('mario.christou@gmail.com', 'Timelapse Error!!!', 'Timelapse Pictures are not being taken from camera'+str(i))
                         print(str(datetime.datetime.now()),"Timelape pictures are not being captured from camera"+str(i))
                         messagebox.showerror("Error","Timelape pictures are not being captured from camera"+str(i))
-                        return
+                        sleep(int(camera_interval)*2)
                     else:
                         latest_picture_timestamps[i] = alphabetic_pictures[-1]
 

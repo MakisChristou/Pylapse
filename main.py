@@ -26,6 +26,8 @@ import base64
 import timeit
 import yagmail
 import re
+from datetime import timedelta
+
 
 root = tk.Tk()
 root.title("Timelapse not running")
@@ -1790,6 +1792,43 @@ def getStats():
     return
 
 
+# Sets 
+def setDates(option):
+
+    global date_selection
+    global start_date_object
+    global end_date_object
+    global start_date_cal
+    global end_date_cal
+
+
+    today = datetime.datetime.now()
+
+    print(today)
+
+
+    if option == "Today":
+        start_date_cal.set_date(today)
+        end_date_cal.set_date(today)
+    elif option == "Yesterday":
+        start_date_cal.set_date(today - timedelta(days=1))
+        end_date_cal.set_date(today)
+    elif option == "Last 2 Days":
+        start_date_cal.set_date(today - timedelta(days=2))
+        end_date_cal.set_date(today)
+    elif option == "Last Week":
+        start_date_cal.set_date(today - timedelta(days=7))
+        end_date_cal.set_date(today)
+    elif option == "Last Month":
+        start_date_cal.set_date(today - timedelta(days=30))
+        end_date_cal.set_date(today)
+    elif option == "Last Year":
+        start_date_cal.set_date(today - timedelta(days=365))
+        end_date_cal.set_date(today)
+
+
+    return
+
 # Actual main function
 if __name__ == "__main__":
 
@@ -1843,11 +1882,14 @@ if __name__ == "__main__":
     renderVideo.place(x=820, y=760)
     # renderVideo.pack()
 
+
+
     # Labels for clarity
     tk.Label(root, text="Camera").place(x=20, y=820)
     tk.Label(root, text="Start Date").place(x=820, y=800)
     tk.Label(root, text="End Date").place(x=820, y=850)
     tk.Label(root, text="Playbck Speed").place(x=220, y=820)
+    tk.Label(root, text="Date Options").place(x=620, y=820)
 
     # Playback Speed
     playback_speed = StringVar(root)
@@ -1855,6 +1897,12 @@ if __name__ == "__main__":
 
     select_playback_speed = OptionMenu(root, playback_speed, "1x", "2x", "4x", "8x", "16x", "32x", "64x")
     select_playback_speed.place(x=220, y=850)
+
+    date_selection = StringVar(root)
+    date_selection.set("Today") # default value
+
+    select_date_options = OptionMenu(root, date_selection, "Today", "Yesterday", "Last 2 Days", "Last Week", "Last Month", "Last Year",command=setDates)
+    select_date_options.place(x=620, y=850)
 
     # Picking Dates
     # Get current date

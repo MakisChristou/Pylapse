@@ -1199,6 +1199,25 @@ def timelapsePlayback():
 
 
     for file in alphabetic_pictures:
+
+        # Get current playback speed
+        string_playback_speed = playback_speed.get()
+        playback_skip = 1
+
+        if string_playback_speed == "1x":
+            playback_skip = 1
+        elif string_playback_speed == "2x":
+            playback_skip = 2
+        elif string_playback_speed == "4x":
+            playback_skip = 4
+        elif string_playback_speed == "8x":
+            playback_skip = 8
+        elif string_playback_speed == "16x":
+            playback_skip = 16
+        elif string_playback_speed == "32x":
+            playback_skip = 32
+        elif string_playback_speed == "64x":
+            playback_skip = 64
         
         # Skip anything that is not a jpeg
         if file[-5:] != ".jpeg":

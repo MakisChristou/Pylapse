@@ -25,6 +25,7 @@ import sys
 import base64
 import timeit
 import yagmail
+import re
 
 root = tk.Tk()
 root.title("Timelapse not running")
@@ -44,6 +45,7 @@ ips = [] # Filled in loadTimelapseSettings()
 usernames = [] # Filled in loadTimelapseSettings()
 passwords = [] # Filled in loadTimelapseSettings()
 cameras = [] # Filled in loadTimelapseSettings()
+emails = [] # Filled in loadTimelapseSettings()
 
 
 camera_ips = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
@@ -69,6 +71,19 @@ log_file = None
 
 settings_password = "agathangelou"
 
+# Stolen from Geeksforgeeks
+def checkEmail(email_address):
+    regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+
+    # pass the regular expression
+    # and the string into the fullmatch() method
+    if(re.fullmatch(regex, email_address)):
+        print(str(datetime.datetime.now()), "Valid Email: " + email_address)
+        return 0
+ 
+    else:
+        print(str(datetime.datetime.now()), "Invalid Email:" + email_address)
+        return 1
 
 def kill_process(name):
      
@@ -223,6 +238,7 @@ def loadTimelapseSettings():
     global usernames
     global passwords
     global cameras
+    global emails
 
     # Remove whitespace from strings
     camera_ips = re.sub(r"\s+", "", camera_ips, flags=re.UNICODE)
@@ -315,6 +331,7 @@ def loadTimelapseSettings():
     usernames.clear()
     passwords.clear()
     cameras.clear()
+    emails.clear()
 
     # Construct ips global list
     temp = ""
@@ -351,6 +368,22 @@ def loadTimelapseSettings():
         if char != ",":
             temp+=char
     passwords.append(temp)
+
+    # Construct emails global list
+    temp = ""
+    for char in camera_error_emails:
+        if char == ",":
+            print(str(datetime.datetime.now()), "Yes")
+        if char == ',':
+            emails.append(temp)
+            temp = ""
+        if char != ",":
+            temp+=char
+    emails.append(temp)
+
+
+    for email in emails:
+        checkEmail(email)
 
 
     for i in range(len(ips)):
@@ -1635,6 +1668,7 @@ def timelapseErrorThread():
     # yagmail.SMTP('timelapse796').send('mario.christou@gmail.com', 'Timelapse Error!!!', 'Timelapse Pictures are not being taken from camera')
     # return
 
+    global emails
 
     latest_picture_timestamps = []
 
@@ -1664,8 +1698,10 @@ def timelapseErrorThread():
 
 
                     if (alphabetic_pictures[-1] == latest_picture_timestamps[i]) and (latest_picture_timestamps[i] != 0) and (int(current_camera_hour) < int(camera_end_hour)) and (int(current_camera_hour) > int(camera_start_hour)):
-                        yagmail.SMTP('timelapse796').send('makis_christou@protonmail.com', 'Timelapse Error!!!', 'Timelapse Pictures are not being taken from camera'+str(i))
-                        yagmail.SMTP('timelapse796').send('mario.christou@gmail.com', 'Timelapse Error!!!', 'Timelapse Pictures are not being taken from camera'+str(i))
+
+                        for receiver_email in emails:
+                            yagmail.SMTP('timelapse796').send(receiver_email, 'Timelapse Error!!!', 'Timelapse Pictures are not being taken from camera'+str(i))
+                        
                         print(str(datetime.datetime.now()),"Timelape pictures are not being captured from camera"+str(i))
                         messagebox.showerror("Error","Timelape pictures are not being captured from camera"+str(i))
                         sleep(int(camera_interval)*2)

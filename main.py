@@ -1624,11 +1624,11 @@ def timelapseErrorThread():
                     print(str(datetime.datetime.now())," Current Time =", current_camera_hour)
 
 
-                    if (alphabetic_pictures[-1] == latest_picture_timestamps[i]) and (latest_picture_timestamps[i] != 0) and (int(current_camera_hour) <= int(camera_end_hour)) and (int(current_camera_hour) >= int(camera_start_hour)):
-                        messagebox.showerror("Error","Timelape pictures are not being captured from camera"+str(i))
-                        print(str(datetime.datetime.now()),"Timelape pictures are not being captured from camera"+str(i))
+                    if (alphabetic_pictures[-1] == latest_picture_timestamps[i]) and (latest_picture_timestamps[i] != 0) and (int(current_camera_hour) < int(camera_end_hour)) and (int(current_camera_hour) > int(camera_start_hour)):
                         yagmail.SMTP('timelapse796').send('makis_christou@protonmail.com', 'Timelapse Error!!!', 'Timelapse Pictures are not being taken from camera'+str(i))
                         yagmail.SMTP('timelapse796').send('mario.christou@gmail.com', 'Timelapse Error!!!', 'Timelapse Pictures are not being taken from camera'+str(i))
+                        print(str(datetime.datetime.now()),"Timelape pictures are not being captured from camera"+str(i))
+                        messagebox.showerror("Error","Timelape pictures are not being captured from camera"+str(i))
                         return
                     else:
                         latest_picture_timestamps[i] = alphabetic_pictures[-1]

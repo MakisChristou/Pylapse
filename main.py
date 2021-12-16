@@ -83,6 +83,7 @@ def checkEmail(email_address):
  
     else:
         print(str(datetime.datetime.now()), "Invalid Email:" + email_address)
+        messagebox.showerror("Error", "Invalid Email:" + email_address)
         return 1
 
 def kill_process(name):

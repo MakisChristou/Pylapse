@@ -30,7 +30,7 @@ from datetime import timedelta
 
 
 root = tk.Tk()
-root.title("Timelapse not running")
+root.title("RTSPlapse")
 root.resizable(width=False, height=False)
 
 user_choice = ""
@@ -1588,7 +1588,7 @@ def timelapseStatusThread():
         # Stop if rendering script is running already for some reason
         if result.stdout:
             print(str(datetime.datetime.now()), "timelapse.sh script is already running")
-            root.title("Timelapse is running")
+            root.title("RTSPlapse: Timelapse is being captured")
 
             # if previous == 1:
             #     messagebox.showinfo("Notification", "Timelapse is running")
@@ -1596,7 +1596,7 @@ def timelapseStatusThread():
             
         else:
             print(str(datetime.datetime.now()), "timelapse.sh script not running")
-            root.title("Timelapse is not running")
+            root.title("RTSPlapse: Timelapse is not being captured")
 
             # if previous == 0:
             #     messagebox.showinfo("Notification", "Timelapse is notrunning")

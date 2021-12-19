@@ -27,6 +27,7 @@ import timeit
 import yagmail
 import re
 from datetime import timedelta
+import hashlib
 
 
 root = tk.Tk()
@@ -71,7 +72,7 @@ rendering_process = None
 log_file = None
 
 
-settings_password = "agathangelou"
+settings_password = "4f780cc16208c65171ad687c8e118dff"
 
 # Stolen from Geeksforgeeks
 def checkEmail(email_address):
@@ -1541,7 +1542,9 @@ def enterPassword():
     def checkPassword():
         user_password = password.get()
 
-        if user_password == settings_password:
+        hashed_user_password = hashlib.md5(user_password.encode()).hexdigest()
+
+        if hashed_user_password == settings_password:
             close_win()
             timelapseSettings()
         else:

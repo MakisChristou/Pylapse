@@ -1910,7 +1910,7 @@ if __name__ == "__main__":
     tk.Label(root, text="Camera").place(x=20, y=820)
     tk.Label(root, text="Start Date").place(x=820, y=800)
     tk.Label(root, text="End Date").place(x=820, y=850)
-    tk.Label(root, text="Playbck Speed").place(x=220, y=820)
+    tk.Label(root, text="Preview Speed").place(x=220, y=820)
     tk.Label(root, text="Date Options").place(x=620, y=820)
 
     # Playback Speed

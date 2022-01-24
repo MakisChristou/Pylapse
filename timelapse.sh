@@ -28,7 +28,7 @@ do
             #echo "Counter: $i"
             SAVE_DIRECTORY="Output/Pictures/Camera"$i
             #echo $SAVE_DIRECTORY
-            ffmpeg -ss 2 -rtsp_transport tcp -i rtsp://${USERNAMES[i]}:${PASSWORDS[i]}@${IPS[i]}//h264Preview_01_main -y -f image2 -qscale 0 -frames 1  $SAVE_DIRECTORY/$TODAY.jpeg
+            ffmpeg -ss 2 -rtsp_transport tcp -i rtsp://${USERNAMES[i]}:${PASSWORDS[i]}@${IPS[i]} -y -f image2 -qscale 0 -frames 1  $SAVE_DIRECTORY/$TODAY.jpeg
         done
         #exit
     fi
@@ -36,4 +36,4 @@ do
     runtime=$((end-start))
     sleep $((INTERVAL-runtime))
 done
-#ffmpeg -ss 2 -rtsp_transport tcp -i rtsp://$USERNAME:$PASSWORD@$IP//h264Preview_01_main -y -f image2 -qscale 0 -frames 1  $DIRECTORY/$TODAY.jpeg
+#ffmpeg -ss 2 -rtsp_transport tcp -i rtsp://$USERNAME:$PASSWORD@$IP-y -f image2 -qscale 0 -frames 1  $DIRECTORY/$TODAY.jpeg

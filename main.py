@@ -852,15 +852,36 @@ def renderVideo():
         # Here, run this into a separate thread
         picture_count = 0
 
+
+        ####################### Here #######################
+        textProgress = tk.StringVar()
+    
+
+        textETA = tk.StringVar()
+        textETA.set("")
+
+        print("TEST")
+
+        #start progress bar
+        popup = tk.Toplevel()
+        popup.title("Copying...")
+        tk.Label(popup, text="Files are being copied...").grid(row=0,column=0)
+        p1 = Progressbar(popup, length=200, cursor='spider', mode="indeterminate", orient=tk.HORIZONTAL)
+        p1.start(10)
+        p1.grid(row=2,column=0)
+        
+        ####################### Here #######################
+
         # Copy everyting to temp dir
         for file in pictures:
             # print(str(datetime.datetime.now()), file)
             unix_epoch = file[0:10]
             temp_date_object = datetime.datetime.fromtimestamp(int(unix_epoch))
             if temp_date_object > start_date_object and temp_date_object < end_date_object:
-                picture_count+=1
+                picture_count+=1                
                 shutil.copy("Output/Pictures/Camera"+camera_selection.get()+"/"+file, "temp")
-
+    
+        popup.destroy()
 
         # Give duration options, delete temp files to achieve selected duration
         picture_count = chooseDuration(picture_count)

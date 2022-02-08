@@ -1,6 +1,6 @@
 # Features
 
-- Capture and playback images from RTSP enabled cameras
+- Capture and playback images from x264 RTSP enabled cameras
 - Render video given selected dates
 - Supports multiple cameras
 - Password protected timelapse settings

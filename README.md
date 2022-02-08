@@ -38,8 +38,10 @@ pip3 install yagmail[all]
 
 ### Step 2: Execute the following
 
-`import yagmail`
-`yagmail.SMTP('mygmailusername').send('to@someone.com', 'subject', 'This is the body')`
+```
+import yagmail
+yagmail.SMTP('mygmailusername').send('to@someone.com', 'subject', 'This is the body')
+```
 
 ### Step 3: Enter email password when prompted
 

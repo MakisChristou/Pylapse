@@ -29,7 +29,6 @@ import re
 from datetime import timedelta
 import hashlib
 
-
 root = tk.Tk()
 root.title("RTSPlapse")
 root.resizable(width=False, height=False)

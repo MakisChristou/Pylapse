@@ -1219,7 +1219,25 @@ def timelapsePlayback():
     playback_speed_counter = 0 # For playback speed
 
 
-    for file in alphabetic_pictures:
+    print("(debug) ", current_playback_image)
+
+    # if current_playback_image > 0:
+    #     print(str(datetime.datetime.now()), "Continuing Playback")
+
+    #     for i in range(current_playback_image,len(alphabetic_pictures)):
+    #         print(alphabetic_pictures[i])
+
+
+    # else:
+    #     print(str(datetime.datetime.now()), "Start Playback")
+
+
+    print(len(alphabetic_pictures))
+
+    #for file in alphabetic_pictures:
+    for i in range(current_playback_image,len(alphabetic_pictures)):
+
+        file = alphabetic_pictures[i]
 
         # Get current playback speed
         string_playback_speed = playback_speed.get()
@@ -1269,6 +1287,7 @@ def timelapsePlayback():
 
         if not getattr(t, "do_pause", True):
             print(str(datetime.datetime.now()), "Stopped at picture with index ", current_playback_image)
+            return
             break
 
         
@@ -1292,6 +1311,8 @@ def timelapsePlayback():
         p2["value"] = 0
         root.update() 
         return
+
+    current_playback_image = 0
 
 
     # Reset Playback counters and progressbars
@@ -1906,8 +1927,8 @@ if __name__ == "__main__":
     canvas.pack()
 
 
-    # pausePlayback = tk.Button(root,text="Pause Playback  ", padx=10, pady=5, command=pausePlayback)
-    # pausePlayback.place(x=20, y=750)
+    pausePlayback = tk.Button(root,text="Pause Playback  ", padx=10, pady=5, command=pausePlayback)
+    pausePlayback.place(x=420, y=760)
     # # pausePlayback.pack()
 
 

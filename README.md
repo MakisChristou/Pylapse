@@ -1,5 +1,5 @@
 ## Pylapse
-PyLapse is a GUI frontend written in Python 3 using the tkinter GUI framerwork. It is a frontend for the popular command line utility ffmpeg. It enables novice users to start easily capturing jpeg images from RTSP (x264) enabled cameras, save them locally and render a quick video out of them all using Pylapse.
+Pylapse is a GUI frontend written in Python 3 using the tkinter GUI framerwork. It is a frontend for the popular command line utility ffmpeg. It enables novice users to start easily capturing jpeg images from RTSP (x264) enabled cameras, save them locally and render a quick video out of them all using Pylapse.
 
 ## Features
 

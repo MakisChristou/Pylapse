@@ -48,7 +48,6 @@ passwords = [] # Filled in loadTimelapseSettings()
 cameras = [] # Filled in loadTimelapseSettings()
 emails = [] # Filled in loadTimelapseSettings()
 
-
 camera_ips = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
 camera_usernames = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
 camera_passwords = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
@@ -62,9 +61,6 @@ current_playback_image = 0
 
 # Create empty process for global use
 rendering_process = None
-
-# start_date_cal = DateEntry()
-# end_date_cal = DateEntry()
 
 # Declare as global variable
 log_file = None
@@ -930,71 +926,13 @@ def renderVideo():
 
 # Runs timelapse.sh script as a separate thread so that tkinter can properly update the GUI
 def runTimelapseScript():
-
-
-
     # Run timelapse script here
     timelapse_process = subprocess.run(["./timelapse.sh"], shell=False)
     if timelapse_process.returncode == 1:
         print(str(datetime.datetime.now()), "An error has occured in timelapse.sh")
         messagebox.showerror("Error", "An error has occured in timelapse.sh")
-
-
     return
 
-
-
-    global camera_ips
-    global camera_usernames
-    global camera_passwords
-    global camera_interval
-    global camera_start_hour
-    global camera_end_hour
-
-
-    root.title("Timelapse is running")
-
-    print(str(datetime.datetime.now()), "runTimelapseScript()")
-    print(str(datetime.datetime.now()), "camera_ips: ", camera_ips)
-    print(str(datetime.datetime.now()), "camera_usernames: ", camera_usernames)
-    print(str(datetime.datetime.now()), "camera_passwords: ", camera_passwords)
-    print(str(datetime.datetime.now()), "camera_interval: ", camera_interval)
-    print(str(datetime.datetime.now()), "camera_start_hour: ", camera_start_hour)
-    print(str(datetime.datetime.now()), "camera_end_hour: ", camera_end_hour)
-
-
-    # For some reason the timelapse settings are not decrypted here
-
-    try:
-        camera_interval = trivial_decrypt(camera_interval)
-    except Exception as e:
-        print(str(datetime.datetime.now()), "Cannot decrypt camera_interval")
-        messagebox.showerror("Error", "Cannot decrypt camera_interval")
-        return
-
-
-    # Get current thread so we can see if its supposed to stop
-    t = threading.current_thread()
-
-    # timelapse.sh script takes one picture and quits
-    while True:
-        start_time = timeit.default_timer()
-        # Check if we should still run
-        if not getattr(t, "do_run", True):
-            print(str(datetime.datetime.now()), "Stopped by stopTimelapse()")
-            break
-        # Take a picture and save it in Output/Pictures
-        result = subprocess.run(["./timelapse.sh"], shell=False)
-
-        if result.returncode == 1:
-            print(str(datetime.datetime.now()), "An error has occured in timelapse.sh")
-            messagebox.showerror("Error", "An error has occured in timelapse.sh")
-            return
-        # code you want to evaluate
-        elapsed = timeit.default_timer() - start_time
-
-        # Sleep for required seconds (takes into account the time to complete one loop iteration)
-        time.sleep(int(camera_interval) - int(elapsed))
 
 # Main Functionality of app is here
 def startTimelapse():

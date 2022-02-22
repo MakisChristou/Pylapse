@@ -1,13 +1,12 @@
 ## Pylapse
-Pylapse is a GUI frontend written in Python 3 using the tkinter GUI framerwork. It is a frontend for the popular command line utility ffmpeg. It enables novice users to start easily capturing jpeg images from RTSP (x264) enabled cameras, save them locally and render a quick video out of them all using Pylapse.
+Pylapse is a GUI frontend for ffmpeg written in Python 3. It enables novice users to start easily capturing jpeg images from RTSP (x264) enabled cameras, save them locally and render a quick video out of them all using Pylapse. Currenttly additional bash scripts are also used alongside the python code.
 
 ## Features
 
 - Capture and playback images from x264 RTSP enabled cameras
 - Render video given selected dates
-- Supports multiple cameras
+- Supports multiple IP cameras
 - Multiple playback speed options
-- Playback progress bar
 - Timelapse running even if application is accidentally closed
 - Start/End time of time-lapse (e.g. always start at 7am and end at 7PM)
 
@@ -32,5 +31,5 @@ pip install --upgrade psutil
 
 ## Running 
 
-`python3 main.py`
+`python3 pylapse.py`
 

@@ -28,8 +28,19 @@ pip install requests
 pip install --upgrade psutil
 ```
 
-
 ## Running 
-
 `python3 pylapse.py`
+
+## Setting Up
+
+Navigate to the Timelapse and then Settings Menu option. When clicking on it a new window wil appear that looks like so:
+
+<img width="500" src="Screenshots/_001.png">
+
+Fill in the information that is relevant to you e.g. you camera IPs (make sure they are static IPs such that they don't change), and their credentials. Make sure your settings are comma seperated and that all fields are populated as shown in the screenshot. Click Save and wait for Pylapse to make some nessesary checks. Note that if you have multiple cameras this may take a while since the code checks if every camera is reachable via RTSP.
+
+
+## Starting Timelapse
+To start capturing pictures it is as simple as navigating to the Timelapse and then Start Menu option. Again this step may take a while to repond since Pylapse checks again if every camera is reachable via RTSP. After that pictures will start being captured according to the chosen settings.
+
 

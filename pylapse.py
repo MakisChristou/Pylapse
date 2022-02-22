@@ -26,7 +26,6 @@ import base64
 import timeit
 import re
 from datetime import timedelta
-import hashlib
 
 root = tk.Tk()
 root.title("Pylapse")
@@ -46,7 +45,6 @@ ips = [] # Filled in loadTimelapseSettings()
 usernames = [] # Filled in loadTimelapseSettings()
 passwords = [] # Filled in loadTimelapseSettings()
 cameras = [] # Filled in loadTimelapseSettings()
-emails = [] # Filled in loadTimelapseSettings()
 
 camera_ips = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
 camera_usernames = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
@@ -55,7 +53,6 @@ camera_interval = "" # Filled either in readTimelapseSettings() or saveTimelapse
 camera_start_hour = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
 camera_end_hour = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
 camera_store_last = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
-camera_error_emails = "" # Filled either in readTimelapseSettings() or saveTimelapseSettings()
 
 current_playback_image = 0
 
@@ -65,20 +62,6 @@ rendering_process = None
 # Declare as global variable
 log_file = None
 
-# Stolen from Geeksforgeeks
-def checkEmail(email_address):
-    regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-
-    # pass the regular expression
-    # and the string into the fullmatch() method
-    if(re.fullmatch(regex, email_address)):
-        print(str(datetime.datetime.now()), "Valid Email: " + email_address)
-        return 0
- 
-    else:
-        print(str(datetime.datetime.now()), "Invalid Email:" + email_address)
-        messagebox.showerror("Error", "Invalid Email:" + email_address)
-        return 1
 
 def kill_process(name):
      
@@ -124,7 +107,6 @@ def writeTimelapseSettings():
     global camera_start_hour
     global camera_end_hour
     global camera_store_last
-    global camera_error_emails
 
     # Remove whitespace from strings
     camera_ips = re.sub(r"\s+", "", camera_ips, flags=re.UNICODE)
@@ -134,7 +116,6 @@ def writeTimelapseSettings():
     camera_start_hour = re.sub(r"\s+", "", camera_start_hour, flags=re.UNICODE)
     camera_end_hour = re.sub(r"\s+", "", camera_end_hour, flags=re.UNICODE)
     camera_store_last = re.sub(r"\s+", "", camera_store_last, flags=re.UNICODE)
-    camera_error_emails = re.sub(r"\s+", "", camera_error_emails, flags=re.UNICODE)
 
 
     print(str(datetime.datetime.now()), "loadTimelapseSettings()")
@@ -145,7 +126,6 @@ def writeTimelapseSettings():
     print(str(datetime.datetime.now()), camera_start_hour)
     print(str(datetime.datetime.now()), camera_end_hour)
     print(str(datetime.datetime.now()), camera_store_last)
-    print(str(datetime.datetime.now()), camera_error_emails)
 
 
     # Check if empty variables
@@ -185,7 +165,6 @@ def writeTimelapseSettings():
         encrypted_camera_start_hour = trivial_encrypt(camera_start_hour)
         encrypted_camera_end_hour = trivial_encrypt(camera_end_hour)
         encrypted_camera_store_last = trivial_encrypt(camera_store_last)
-        encrypted_camera_error_emails = trivial_encrypt(camera_error_emails)
     except Exception as e:
         print(str(datetime.datetime.now()), "Cannot encrypt timelapse settings")
         messagebox.showerror("Error", "Cannot encrypt timelapse settings")
@@ -200,7 +179,6 @@ def writeTimelapseSettings():
     timelapse_settings_file.write(encrypted_camera_start_hour+"\n")
     timelapse_settings_file.write(encrypted_camera_end_hour+"\n")
     timelapse_settings_file.write(encrypted_camera_store_last+"\n")
-    timelapse_settings_file.write(encrypted_camera_error_emails+"\n")
     timelapse_settings_file.close()
 
 # Base64 decode
@@ -227,13 +205,11 @@ def loadTimelapseSettings():
     global camera_start_hour
     global camera_end_hour
     global camera_store_last
-    global camera_error_emails
 
     global ips
     global usernames
     global passwords
     global cameras
-    global emails
 
     # Remove whitespace from strings
     camera_ips = re.sub(r"\s+", "", camera_ips, flags=re.UNICODE)
@@ -243,7 +219,6 @@ def loadTimelapseSettings():
     camera_start_hour = re.sub(r"\s+", "", camera_start_hour, flags=re.UNICODE)
     camera_end_hour = re.sub(r"\s+", "", camera_end_hour, flags=re.UNICODE)
     camera_store_last = re.sub(r"\s+", "", camera_store_last, flags=re.UNICODE)
-    camera_error_emails = re.sub(r"\s+", "", camera_error_emails, flags=re.UNICODE)   
 
     print(str(datetime.datetime.now()), "loadTimelapseSettings()")
     print(str(datetime.datetime.now()), camera_ips)
@@ -253,10 +228,10 @@ def loadTimelapseSettings():
     print(str(datetime.datetime.now()), camera_start_hour)
     print(str(datetime.datetime.now()), camera_end_hour)
     print(str(datetime.datetime.now()), camera_store_last)
-    print(str(datetime.datetime.now()), camera_error_emails)
+
 
     # Check if empty variables
-    if not camera_interval or not camera_usernames or not camera_passwords or not camera_ips or not camera_start_hour or not camera_end_hour or not camera_store_last or not camera_error_emails:
+    if not camera_interval or not camera_usernames or not camera_passwords or not camera_ips or not camera_start_hour or not camera_end_hour or not camera_store_last:
         print(str(datetime.datetime.now()), "Some variables are empty")
         messagebox.showerror("Error", "Wrong timelapse_settings.txt format")
         return 1
@@ -326,7 +301,6 @@ def loadTimelapseSettings():
     usernames.clear()
     passwords.clear()
     cameras.clear()
-    emails.clear()
 
     # Construct ips global list
     temp = ""
@@ -364,22 +338,6 @@ def loadTimelapseSettings():
             temp+=char
     passwords.append(temp)
 
-    # Construct emails global list
-    temp = ""
-    for char in camera_error_emails:
-        if char == ",":
-            print(str(datetime.datetime.now()), "Yes")
-        if char == ',':
-            emails.append(temp)
-            temp = ""
-        if char != ",":
-            temp+=char
-    emails.append(temp)
-
-
-    for email in emails:
-        checkEmail(email)
-
 
     for i in range(len(ips)):
         cameras.append(i)
@@ -399,7 +357,6 @@ def readTimelapseSettings():
     global camera_start_hour
     global camera_end_hour
     global camera_store_last
-    global camera_error_emails
 
 
     if file_exists:
@@ -412,7 +369,6 @@ def readTimelapseSettings():
         camera_start_hour = lines[4]
         camera_end_hour = lines[5]
         camera_store_last = lines[6]
-        camera_error_emails = lines[7]
 
 
         # Decrypt Passwords
@@ -424,7 +380,6 @@ def readTimelapseSettings():
             camera_start_hour = trivial_decrypt(camera_start_hour)
             camera_end_hour = trivial_decrypt(camera_end_hour)
             camera_store_last = trivial_decrypt(camera_store_last)
-            camera_error_emails = trivial_decrypt(camera_error_emails)
         except Exception as e:
             print(str(datetime.datetime.now()), "Cannot decrypt timelapse settings")
             messagebox.showerror("Error", "Cannot decrypt timelapse settings")
@@ -433,7 +388,7 @@ def readTimelapseSettings():
 
 
         # Check if variables are empty
-        if len(lines) != 8:
+        if len(lines) != 7:
             messagebox.showerror("Error", "Wrong timelapse_settings.txt format")
             return 1
 
@@ -484,7 +439,7 @@ def timelapseSettings():
         global camera_start_hour
         global camera_end_hour
         global camera_store_last
-        global camera_error_emails
+
 
 
         # Get data from text boxes
@@ -495,7 +450,6 @@ def timelapseSettings():
         camera_start_hour = startHourInputText.get(1.0, "end-1c")
         camera_end_hour = endHourInputText.get(1.0, "end-1c")
         camera_store_last = storeLastInputText.get(1.0, "end-1c")
-        camera_error_emails = errorEmailInputText.get(1.0, "end-1c")
 
 
         # Remove whitespace from strings
@@ -506,7 +460,6 @@ def timelapseSettings():
         camera_start_hour = re.sub(r"\s+", "", camera_start_hour, flags=re.UNICODE)
         camera_end_hour = re.sub(r"\s+", "", camera_end_hour, flags=re.UNICODE)
         camera_store_last = re.sub(r"\s+", "", camera_store_last, flags=re.UNICODE)
-        camera_error_emails = re.sub(r"\s+", "", camera_error_emails, flags=re.UNICODE)
 
 
         print(str(datetime.datetime.now()), "SaveTimelapseSettings()")
@@ -517,7 +470,6 @@ def timelapseSettings():
         print(str(datetime.datetime.now()), camera_start_hour)
         print(str(datetime.datetime.now()), camera_end_hour)
         print(str(datetime.datetime.now()), camera_store_last)
-        print(str(datetime.datetime.now()), camera_error_emails)
 
 
         # List data structures are filled, don't bother saving incorrect stuff
@@ -542,7 +494,6 @@ def timelapseSettings():
                 encrypted_camera_start_hour = trivial_encrypt(camera_start_hour)
                 encrypted_camera_end_hour = trivial_encrypt(camera_end_hour)
                 encrypted_camera_store_last = trivial_encrypt(camera_store_last)
-                encrypted_camera_error_emails = trivial_encrypt(camera_error_emails)
 
             except Exception as e:
                 print(str(datetime.datetime.now()), "Cannot encrypt timelapse settings")
@@ -559,7 +510,6 @@ def timelapseSettings():
             timelapse_settings_file.write(encrypted_camera_start_hour+"\n")
             timelapse_settings_file.write(encrypted_camera_end_hour+"\n")
             timelapse_settings_file.write(encrypted_camera_store_last+"\n")
-            timelapse_settings_file.write(encrypted_camera_error_emails+"\n")
             timelapse_settings_file.close()
             print(str(datetime.datetime.now()), "New Settings ")
             print(str(datetime.datetime.now()), camera_interval)
@@ -569,7 +519,6 @@ def timelapseSettings():
             print(str(datetime.datetime.now()), camera_start_hour)
             print(str(datetime.datetime.now()), camera_end_hour)
             print(str(datetime.datetime.now()), camera_store_last)
-            print(str(datetime.datetime.now()), camera_error_emails)
             print(str(datetime.datetime.now()), "Saved in file ")
             print(str(datetime.datetime.now()), encrypted_camera_interval)
             print(str(datetime.datetime.now()), encrypted_camera_ips)
@@ -578,7 +527,6 @@ def timelapseSettings():
             print(str(datetime.datetime.now()), encrypted_camera_start_hour)
             print(str(datetime.datetime.now()), encrypted_camera_end_hour)
             print(str(datetime.datetime.now()), encrypted_camera_store_last)
-            print(str(datetime.datetime.now()), encrypted_camera_error_emails)
             print(str(datetime.datetime.now()), "Saved timelapse settings")
             messagebox.showinfo("Success", "Saved timelapse settings")
             messagebox.showinfo("Success", "Restart program for settings to take full effect")
@@ -629,12 +577,6 @@ def timelapseSettings():
     storeLastInputText = tk.Text(popup, height = 1, width = 20) 
     storeLastInputText.grid(row=14,column=0)
     storeLastInputText.insert(END,camera_store_last)
-
-
-    tk.Label(popup, text="Admin Emails (error notifications)").grid(row=15,column=0)
-    errorEmailInputText = tk.Text(popup, height = 1, width = 50) 
-    errorEmailInputText.grid(row=16,column=0)
-    errorEmailInputText.insert(END,camera_error_emails)
 
 
 
@@ -945,7 +887,6 @@ def startTimelapse():
     global camera_start_hour
     global camera_end_hour
     global camera_store_last
-    global camera_error_emails
 
     # Remove .stop if it exists
     file_exists = os.path.exists(".stop")
@@ -1620,8 +1561,6 @@ def deletePicturesThread():
 # Checks if pictures are being captured
 def timelapseErrorThread():
 
-    global emails
-
     latest_picture_timestamps = []
 
     for i in cameras:
@@ -1648,9 +1587,8 @@ def timelapseErrorThread():
                     current_camera_hour = now.strftime("%H%M")
                     print(str(datetime.datetime.now())," Current Time =", current_camera_hour)
 
-
                     if (alphabetic_pictures[-1] == latest_picture_timestamps[i]) and (latest_picture_timestamps[i] != 0) and (int(current_camera_hour) < int(camera_end_hour)) and (int(current_camera_hour) > int(camera_start_hour)):
-                        
+
                         print(str(datetime.datetime.now()),"Timelape pictures are not being captured from camera"+str(i))
                         messagebox.showerror("Error","Timelape pictures are not being captured from camera"+str(i))
                         sleep(int(camera_interval)*2)

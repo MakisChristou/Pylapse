@@ -41,6 +41,6 @@ Fill in the information that is relevant to you e.g. you camera IPs (make sure t
 
 
 ## Starting Timelapse
-To start capturing pictures it is as simple as navigating to the Timelapse and then Start Menu option. Again this step may take a while to repond since Pylapse checks again if every camera is reachable via RTSP. After that pictures will start being captured according to the chosen settings.
+To start capturing pictures it is as simple as navigating to the Timelapse and then Start Menu option. Again this step may take a while to repond since Pylapse checks again if every camera is reachable via RTSP. After that pictures will start being captured according to the chosen settings. Now you can safely close the program since the `timelapse.sh` bash script is running as a background process.
 
 

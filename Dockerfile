@@ -13,5 +13,7 @@ RUN pip install opencv-python
 RUN pip install tkcalendar
 RUN pip install requests
 RUN pip install --upgrade psutil
+RUN pip3 install yagmail[all]
+RUN pip3 install lxml
 
 CMD ["python3", "main.py"]
